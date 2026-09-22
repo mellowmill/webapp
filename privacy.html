@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - MellowMill</title>
+    <meta name="theme-color" content="#6a4caf">
+    <link rel="icon" href="icon_recreated_macos.png" type="image/png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <script src="platform-web.js"></script>
+    <link rel="stylesheet" href="common.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="common.js"></script>
+    <style>
+        html {
+            background-color: var(--color-background);
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family-base);
+            background-color: var(--color-background);
+            color: var(--color-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .onboarding-container {
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .onboarding-container h1 {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+        }
+
+        .onboarding-container .subtitle {
+            font-size: 1em;
+            color: var(--color-text);
+            opacity: 0.7;
+            margin-bottom: 24px;
+        }
+
+        /* Step indicators */
+        .step-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            border: 2px solid var(--color-border);
+            color: var(--color-text);
+            opacity: 0.5;
+            transition: all 0.4s ease;
+        }
+
+        .step-indicator.active {
+            border-color: var(--color-primary);
+            opacity: 1;
+        }
+
+        .step-indicator.completed {
+            border-color: #48bb78;
+            color: #48bb78;
+            opacity: 1;
+        }
+
+        .step-number {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 700;
+            transition: all 0.4s ease;
+        }
+
+        .step-indicator.completed .step-number {
+            background-color: #48bb78;
+            border-color: #48bb78;
+            color: white;
+        }
+
+        /* Slide container */
+        .slides-wrapper {
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .slide {
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+        }
+
+        .slide.slide-out-left {
+            transform: translateX(-100%);
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .slide.slide-in-right {
+            animation: slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .scroll-content {
+            text-align: left;
+            background-color: var(--color-background2);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 24px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .scroll-content h3 {
+            margin-top: 16px;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .scroll-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .scroll-content p {
+            margin: 0 0 12px 0;
+        }
+
+        .scroll-content ul {
+            margin: 0 0 12px 0;
+            padding-left: 20px;
+        }
+
+        .scroll-content li {
+            margin-bottom: 4px;
+        }
+
+        .onboarding-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .onboarding-actions button {
+            padding: 12px 40px;
+            font-size: 1em;
+            font-family: var(--font-family-base);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn-accept {
+            background-color: #48bb78;
+            color: white;
+        }
+
+        .btn-accept:hover {
+            opacity: 0.9;
+        }
+
+        .btn-accept:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="onboarding-container">
+        <h1>Welcome to MellowMill</h1>
+        <p class="subtitle">Before you get started, please review and accept the following.</p>
+
+        <div class="step-indicators">
+            <div class="step-indicator active" id="step-privacy">
+                <span class="step-number" aria-hidden="true">1</span>
+                <span>Privacy Policy</span>
+            </div>
+            <div class="step-indicator" id="step-terms">
+                <span class="step-number" aria-hidden="true">2</span>
+                <span>Terms &amp; Conditions</span>
+            </div>
+        </div>
+
+        <div class="slides-wrapper">
+            <div class="slide" id="slide-privacy">
+                <div class="scroll-content">
+                    <h3>Your Data Stays Local</h3>
+                    <p>MellowMill is a local-first application. All your notes, tasks, and data are stored on your device. We do not upload or sync your content to cloud servers operated by us or third parties.</p>
+
+                    <h3>Third-Party AI &amp; Connected Services</h3>
+                    <p>If you choose to connect third-party services such as AI providers or Cloud storage services, your data may be sent to those services according to their own terms and privacy policies. MellowMill does not control how third-party services handle your data.</p>
+
+                    <h3>What We Collect</h3>
+                    <p>We collect minimal data to operate the product:</p>
+                    <ul>
+                        <li><strong>License validation:</strong> When you register or activate a license, your email address and order ID are sent to our server to verify your purchase.</li>
+                    </ul>
+                    <p>Your license and email data is stored on secure servers and is never sold or shared with third parties for marketing.</p>
+                    <p>You may request to have your registration data deleted at any time by contacting us. Note that this may deactivate your access to specific features and functionality you have paid for.</p>
+
+                    <h3>What We Don't Collect</h3>
+                    <ul>
+                        <li>We do not collect analytics or usage telemetry.</li>
+                        <li>We do not read or transmit your notes or files.</li>
+                        <li>We do not use cookies or third-party trackers.</li>
+                    </ul>
+
+                    <h3>Third-Party Services</h3>
+                    <p>License purchases are processed by Stripe. Their privacy policy applies to transactions made through their platform.</p>
+
+                    <p>We may update this policy from time to time. We will notify you of any significant changes via the app or our website.</p>
+                </div>
+            </div>
+
+            <div class="slide" id="slide-terms" style="display: none;">
+                <div class="scroll-content">
+                    <h3>License &amp; Usage</h3>
+                    <p>MellowMill is licensed, not sold. By using this software, you are granted a non-exclusive, non-transferable license to use the application on your personal devices in accordance with your license tier (Unlicensed, Free, Core, or Professional).</p>
+                    <p>We reserve the right to modify the features included in each license tier at any time.</p>
+
+                    <h3>Intellectual Property</h3>
+                    <p>All rights, title, and interest in MellowMill, including its design, code, and branding, remain the property of MellowMill. You may not reverse-engineer, decompile, or modify the software.</p>
+
+                    <h3>Your Content</h3>
+                    <p>You retain full ownership of all notes, files, and data you create using MellowMill. Your content is stored locally on your device and is your responsibility to back up.</p>
+
+                    <h3>Purchases &amp; Refunds</h3>
+                    <p>License purchases are one-time payments processed through Stripe. Refund requests are handled according to Stripe's refund policy. License keys are tied to your email address and order ID.</p>
+
+                    <h3>Roadmap</h3>
+                    <p>Access to the product roadmap is available to users who purchase a Core or Professional license, or who register for a free account. This access is provided as a courtesy and does not constitute a commitment to develop, release, or deliver any features listed.</p>
+
+                    <h3>Limitation of Liability</h3>
+                    <p>MellowMill is provided on an 'as is' and 'as available' basis. We do not warrant that the software will be uninterrupted or error-free. We are not liable for any data loss, damages, or issues arising from the use of the software. You are responsible for maintaining backups of your data.</p>
+
+                    <h3>Acceptable Use</h3>
+                    <p>You agree not to use MellowMill for any unlawful purpose, or to attempt to circumvent license restrictions or security measures.</p>
+
+                    <h3>Governing Law</h3>
+                    <p>These terms are governed by the laws of England and Wales. Any disputes shall be resolved in the courts of England and Wales.</p>
+
+                    <h3>Termination</h3>
+                    <p>We reserve the right to revoke your license if you violate these terms. Upon termination, you must stop using the software. Your locally stored data remains yours.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="onboarding-actions">
+            <button class="btn-accept" id="btn-continue" onclick="advance()">Accept &amp; Continue</button>
+            <p style="font-size: 0.85em; opacity: 0.7; margin-top: 8px;">If you have questions, contact us at hello@mellowmill.app</p>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 'privacy';
+
+        async function advance() {
+            if (currentStep === 'privacy') {
+                await acceptPrivacyStep();
+            } else {
+                await acceptTermsStep();
+            }
+        }
+
+        async function acceptPrivacyStep() {
+            const btn = document.getElementById('btn-continue');
+            btn.disabled = true;
+
+            try {
+                const { invoke } = window.__TAURI__.core;
+                await invoke('accept_privacy_policy');
+                transitionToTerms();
+            } catch (error) {
+                console.error('Error:', error);
+                btn.disabled = false;
+                alert('Something went wrong. Please try again.');
+            }
+        }
+
+        async function acceptTermsStep() {
+            const btn = document.getElementById('btn-continue');
+            btn.disabled = true;
+            btn.textContent = 'Setting up...';
+
+            try {
+                const { invoke } = window.__TAURI__.core;
+                await invoke('accept_terms');
+                window.location.href = '/benefits.html';
+            } catch (error) {
+                console.error('Error:', error);
+                btn.disabled = false;
+                btn.innerHTML = 'Accept &amp; Continue';
+                alert('Something went wrong. Please try again.');
+            }
+        }
+
+        function transitionToTerms() {
+            currentStep = 'terms';
+
+            // Animate the privacy step indicator to completed
+            const stepPrivacy = document.getElementById('step-privacy');
+            stepPrivacy.classList.remove('active');
+            stepPrivacy.classList.add('completed');
+
+            // Activate the terms step indicator
+            const stepTerms = document.getElementById('step-terms');
+            stepTerms.classList.add('active');
+
+            // Slide out privacy content
+            const slidePrivacy = document.getElementById('slide-privacy');
+            slidePrivacy.classList.add('slide-out-left');
+
+            // After a brief delay, show and slide in terms content, re-enable the button
+            setTimeout(() => {
+                slidePrivacy.style.display = 'none';
+
+                const slideTerms = document.getElementById('slide-terms');
+                slideTerms.style.display = '';
+                slideTerms.classList.add('slide-in-right');
+
+                document.getElementById('btn-continue').disabled = false;
+            }, 300);
+        }
+
+        // On load, check if privacy was already accepted (e.g. user closed app mid-flow)
+        async function checkStep() {
+            try {
+                const { invoke } = window.__TAURI__.core;
+                const step = await invoke('check_first_run');
+                if (step === 'terms') {
+                    // Skip straight to terms without animation
+                    currentStep = 'terms';
+                    document.getElementById('step-privacy').classList.remove('active');
+                    document.getElementById('step-privacy').classList.add('completed');
+                    document.getElementById('step-terms').classList.add('active');
+                    document.getElementById('slide-privacy').style.display = 'none';
+                    document.getElementById('slide-terms').style.display = '';
+                } else if (step === 'none') {
+                    window.location.href = '/menu.html';
+                }
+            } catch (e) {
+                console.error('Error checking step:', e);
+            }
+        }
+        checkStep();
+    </script>
+</body>
+
+</html>

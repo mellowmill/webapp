@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Workspace - MellowMill</title>
+    <meta name="theme-color" content="#6a4caf">
+    <link rel="icon" href="icon_recreated_macos.png" type="image/png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <script src="platform-web.js"></script>
+    <script>
+        (function() {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="common.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: var(--color-background);
+            color: var(--color-text);
+            font-family: var(--font-family-base);
+            overflow: hidden;
+        }
+        .ws-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+        .ws-card {
+            width: 100%;
+            max-width: 540px;
+            background-color: var(--color-background2);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 28px 28px 20px;
+            box-shadow: 0 12px 32px var(--color-shadow-sm);
+            display: flex;
+            flex-direction: column;
+            max-height: 100%;
+        }
+        .ws-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 0 0 4px;
+            color: var(--color-text);
+        }
+        .ws-sub {
+            font-size: 0.9rem;
+            color: var(--color-text-secondary);
+            margin: 0 0 20px;
+        }
+        .ws-list {
+            list-style: none;
+            margin: 0 0 16px;
+            padding: 0;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        .ws-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: background-color 0.12s ease, color 0.12s ease;
+            position: relative;
+            background-color: transparent;
+        }
+        .ws-item:hover {
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+        [data-theme="dark"] .ws-item:hover {
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+        .ws-item.selected,
+        .ws-item.selected:hover {
+            background-color: #16a34a;
+            color: #ffffff;
+        }
+        .ws-item.selected:hover {
+            background-color: #15803d;
+        }
+        .ws-item.selected .ws-item-icon,
+        .ws-item.selected .ws-item-name,
+        .ws-item.selected .ws-item-path,
+        .ws-item.selected .ws-item-meta {
+            color: #ffffff;
+        }
+        .ws-item.missing {
+            opacity: 0.55;
+        }
+        .ws-item-icon {
+            color: var(--color-text-secondary);
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .ws-pick-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 4px 0 16px;
+            padding: 4px 2px;
+            background: none;
+            border: none;
+            color: var(--color-primary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+        .ws-pick-link:hover {
+            color: var(--color-primary-hover, var(--color-primary));
+            text-decoration: none;
+        }
+        .ws-item-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .ws-item-name {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--color-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .ws-item-path {
+            font-size: 0.78rem;
+            color: var(--color-text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            direction: rtl;        /* keep the leaf folder visible when truncating */
+            text-align: left;
+            margin-top: 1px;
+        }
+        .ws-item-meta {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            margin-top: 2px;
+        }
+        .ws-badge {
+            background-color: var(--color-primary);
+            color: var(--color-on-primary);
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            flex-shrink: 0;
+        }
+        .ws-forget {
+            background: transparent;
+            border: none;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 4px 6px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            flex-shrink: 0;
+        }
+        .ws-item:hover .ws-forget {
+            opacity: 0.7;
+        }
+        .ws-forget:hover {
+            opacity: 1 !important;
+            color: var(--color-text);
+        }
+        .ws-actions {
+            display: flex;
+            gap: 8px;
+            border-top: 1px solid var(--color-border);
+            padding-top: 16px;
+        }
+        .ws-btn {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            background-color: var(--color-background);
+            color: var(--color-text);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .ws-btn:hover {
+            border-color: var(--color-primary);
+        }
+        .ws-btn.primary {
+            background-color: #16a34a;
+            border-color: #16a34a;
+            color: #ffffff;
+        }
+        .ws-btn.primary:hover {
+            background-color: #15803d;
+            border-color: #15803d;
+        }
+        .ws-empty {
+            font-size: 0.9rem;
+            color: var(--color-text-secondary);
+            padding: 16px;
+            text-align: center;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="ws-wrapper" data-tauri-drag-region>
+        <div class="ws-card">
+            <h1 class="ws-title">Workspace settings</h1>
+            <p class="ws-sub">Choose where your notes live for this session, or switch to another workspace.</p>
+            <ul id="ws-list" class="ws-list"></ul>
+            <button type="button" id="ws-pick" class="ws-pick-link">
+                <i class="fas fa-folder-open"></i> Switch workspace…
+            </button>
+            <div class="ws-actions">
+                <button id="ws-cancel" class="ws-btn" title="Keep the current workspace">Cancel</button>
+                <button id="ws-continue" class="ws-btn primary">Open</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { invoke } = window.__TAURI__.core;
+
+        let state = { current: '', isDefault: false, recents: [] };
+        let selectedPath = '';
+
+        function normalize(p) {
+            if (!p) return '';
+            return p.replace(/[\\/]+/g, '/').replace(/\/+$/, '').toLowerCase();
+        }
+        function pathsEqual(a, b) {
+            return !!a && !!b && normalize(a) === normalize(b);
+        }
+        function folderName(p) {
+            if (!p) return '';
+            const parts = p.replace(/[\\/]+$/, '').split(/[\\/]/);
+            return parts[parts.length - 1] || p;
+        }
+        function formatRelative(iso) {
+            if (!iso) return '';
+            const t = new Date(iso).getTime();
+            if (!t) return '';
+            const diff = Date.now() - t;
+            const sec = Math.floor(diff / 1000);
+            if (sec < 60) return 'just now';
+            const min = Math.floor(sec / 60);
+            if (min < 60) return `${min} min ago`;
+            const hr = Math.floor(min / 60);
+            if (hr < 24) return `${hr} hr ago`;
+            const day = Math.floor(hr / 24);
+            if (day < 30) return `${day} day${day === 1 ? '' : 's'} ago`;
+            return new Date(iso).toLocaleDateString();
+        }
+
+        function render() {
+            const list = document.getElementById('ws-list');
+            list.innerHTML = '';
+            if (!state.recents || state.recents.length === 0) {
+                const empty = document.createElement('li');
+                empty.className = 'ws-empty';
+                empty.textContent = 'No workspaces yet — pick a folder to get started.';
+                list.appendChild(empty);
+                return;
+            }
+            state.recents.forEach(entry => {
+                const li = document.createElement('li');
+                li.className = 'ws-item';
+                const isSelected = pathsEqual(entry.path, selectedPath);
+                const isCurrent = pathsEqual(entry.path, state.current);
+                if (isSelected) li.classList.add('selected');
+                if (!entry.exists) li.classList.add('missing');
+
+                const icon = document.createElement('span');
+                icon.className = 'ws-item-icon';
+                const iconName = entry.isDefault ? 'house' : (entry.exists ? 'folder' : 'folder-minus');
+                icon.innerHTML = `<i class="fas fa-${iconName}"></i>`;
+
+                const body = document.createElement('div');
+                body.className = 'ws-item-body';
+                // Top line: a friendly name. The built-in default vault lives
+                // at an opaque per-package location on MSIX
+                // (…\Packages\<hash>\LocalState), so we label it
+                // "Default Workspace"; custom folders show their leaf name.
+                const name = document.createElement('div');
+                name.className = 'ws-item-name';
+                name.textContent = entry.isDefault ? 'Default Workspace' : folderName(entry.path);
+                name.title = entry.path;
+
+                // Second line: the full path, kept for transparency.
+                const path = document.createElement('div');
+                path.className = 'ws-item-path';
+                path.textContent = entry.path;
+                path.title = entry.path;
+
+                const meta = document.createElement('div');
+                meta.className = 'ws-item-meta';
+                const bits = [];
+                if (isCurrent) bits.push('Currently loaded');
+                if (!entry.exists) bits.push('Folder missing');
+                if (entry.lastOpened) bits.push(formatRelative(entry.lastOpened));
+                meta.textContent = bits.join(' · ');
+                body.appendChild(name);
+                body.appendChild(path);
+                if (bits.length) body.appendChild(meta);
+
+                li.appendChild(icon);
+                li.appendChild(body);
+
+                // The default vault can't be removed; current workspace also
+                // has no forget button (you can't drop the one you're using).
+                if (!isCurrent && !entry.isDefault) {
+                    const forget = document.createElement('button');
+                    forget.className = 'ws-forget';
+                    forget.title = 'Remove from recents';
+                    forget.innerHTML = '<i class="fas fa-times"></i>';
+                    forget.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        await invoke('forget_workspace', { path: entry.path });
+                        await loadState();
+                    });
+                    li.appendChild(forget);
+                }
+
+                li.addEventListener('click', () => {
+                    selectedPath = entry.path;
+                    render();
+                });
+                li.addEventListener('dblclick', () => activate(entry.path));
+                list.appendChild(li);
+            });
+
+        }
+
+        async function browseAndActivate() {
+            const picked = await invoke('pick_workspace_folder');
+            if (picked) await activate(picked);
+        }
+
+        async function loadState() {
+            state = await invoke('get_workspace_state');
+            if (!selectedPath || !state.recents.some(r => pathsEqual(r.path, selectedPath))) {
+                selectedPath = state.current;
+            }
+            render();
+        }
+
+        async function activate(path) {
+            if (!path) return;
+            if (pathsEqual(path, state.current)) {
+                await invoke('touch_current_workspace');
+            } else {
+                // Hot-swap: backend re-opens the DB + watcher against `path`.
+                // Frontend just navigates to menu.html which re-fetches state.
+                await invoke('switch_workspace', { path });
+            }
+            window.location.href = '/menu.html';
+        }
+
+        function confirmSelection() {
+            activate(selectedPath);
+        }
+
+        document.getElementById('ws-continue').addEventListener('click', confirmSelection);
+        document.getElementById('ws-pick').addEventListener('click', browseAndActivate);
+        document.getElementById('ws-cancel').addEventListener('click', () => {
+            window.location.href = '/menu.html';
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                confirmSelection();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                window.location.href = '/menu.html';
+            }
+        });
+
+        loadState();
+    </script>
+</body>
+</html>

@@ -1,0 +1,2435 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    font-family: var(--font-family-base);
+    background-color: var(--color-background);
+}
+
+/* Tooltip styles */
+.tooltip {
+    position: fixed;
+    display: none;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    border-radius: 6px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    width: 50%;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    font-size: 1rem; /* Matches editor font size */
+    line-height: 1.6; /* Matches editor line height */
+    text-align: left;
+    border: 1px solid var(--color-border);
+    left: 50%;
+    top: 60px;
+    transform: translateX(-50%);
+}
+
+.tooltip.show {
+    display: block;
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.title-bar {
+    position: relative;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: var(--color-sidebar);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    height: 50px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    width: 100%;
+}
+
+[data-theme="dark"] .title-bar {
+    background-color: var(--color-sidebar);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* macOS: the native title bar is transparent (see apply_titlebar_theme in the
+   Rust backend), so reserve space above the controls for the traffic lights. */
+:root[data-os="mac"] .title-bar {
+    height: auto;
+    padding-top: 12px;
+}
+
+/* The browser build has no traffic lights and keeps the compact web header. */
+:root[data-platform="web"] .title-bar {
+    height: 50px;
+    padding-top: 12px;
+}
+
+.title-bar-left,
+.title-bar-right {
+    display: flex;
+    align-items: center;
+}
+
+.title-bar-center {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    transform: translateX(-50%);
+    gap: 15px;
+}
+
+.title-bar-title {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--color-text);
+    margin: 0 auto;
+}
+
+.icon-button {
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 1.3em;
+    padding: 10px;
+    display: inline-block;
+}
+
+.icon-button:hover {
+    color: var(--color-primary);
+}
+
+.icon-button[aria-disabled="true"] {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+#convert-template-button .fa-file-code {
+    display: inline-block;
+    width: 20px;
+    font-size: 20px;
+    line-height: 20px;
+    text-align: center;
+    vertical-align: middle;
+    pointer-events: none;
+}
+
+.revert-version-btn {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    border: 1px solid var(--color-primary-dark);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 8px;
+}
+
+.revert-version-btn:hover {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-dark);
+}
+
+.revert-version-btn:active {
+    transform: scale(0.98);
+}
+
+/* Editor Styles */
+#editor {
+    flex: 1;
+    overflow-y: auto;
+    /* Centre the fixed 680px reading column: side padding grows to fill any
+       extra window width so the text sits with equal space left and right,
+       falling back to a minimum 80px gutter on narrow windows. */
+    padding: 20px max(80px, calc((100% - 680px) / 2));
+    font-family: var(--font-family-base);
+    font-size: 1rem; /* Matches menu body text size, scales with font size setting */
+    line-height: 1.6;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    outline: none;
+    position: relative;
+}
+
+/* Cap every line/block in the editor at a fixed 680px reading column so text
+   wraps consistently rather than running the full width of the window. A fixed
+   px width (rather than ch) keeps headings, body text, tasks and list items all
+   aligned to the same measure regardless of their font size. */
+#editor > * {
+    max-width: 680px;
+}
+
+/* Headings — perfect fourth type scale (ratio 1.333) built up from the 1rem
+   body text: h4 = 1.333x body, and each larger heading is 1.333x the one below.
+   Colour steps in parallel: the title (h1) matches the main text colour, and as
+   headings get smaller they fade evenly toward the muted secondary text colour. */
+#editor h1 {
+    font-size: 3.157em; /* 1.333^4 */
+    color: var(--color-text);
+    margin: 0;
+    padding: 8px 0;
+    font-weight: bold;
+}
+
+#editor h2 {
+    font-size: 2.369em; /* 1.333^3 */
+    color: color-mix(in srgb, var(--color-text) 83%, var(--color-text-secondary));
+    margin: 0;
+    padding: 6px 0;
+    font-weight: bold;
+
+}
+
+#editor h3 {
+    font-size: 1.777em; /* 1.333^2 */
+    color: color-mix(in srgb, var(--color-text) 67%, var(--color-text-secondary));
+    margin: 0;
+    padding: 4px 0;
+    font-weight: bold;
+}
+
+#editor h4 {
+    font-size: 1.333em; /* 1.333^1 */
+    color: color-mix(in srgb, var(--color-text) 50%, var(--color-text-secondary));
+    margin: 0;
+    padding: 4px 0;
+}
+
+/* Paragraph text slightly muted in dark mode */
+[data-theme="dark"] #editor p {
+    color: var(--color-text);
+}
+
+/* Tasks */
+.task {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+}
+
+.task-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-top: 4px;
+    color: var(--color-primary);
+}
+
+.task-indent-1 { padding-left: 20px; }
+.task-indent-2 { padding-left: 40px; }
+.task-indent-3 { padding-left: 60px; }
+
+/* An urgent task — important (contains "!") or due less than a week away — has
+   its text emphasised with a medium weight. Only the text span is targeted, not
+   the open-as-note arrow or the right-aligned due-date/people pills. */
+.task-urgent > span:not(.task-open):not(.task-due):not(.task-people) {
+    font-weight: 600;
+}
+
+/* A task with a linked note (data-note-id present) has its text underlined. */
+.task[data-note-id] > span:not(.task-open):not(.task-due):not(.task-people) {
+    text-decoration: underline;
+}
+
+/* The literal "!" inside a task's text is hidden — the importance chip in the
+   meta row already signals importance — and only revealed when the caret is in
+   that task. */
+.task-bang {
+    display: none;
+}
+
+.task-active .task-bang {
+    display: inline;
+}
+
+/* Likewise the trailing due-date phrase is hidden in the task line (the
+   friendly .task-due pill on the right surfaces it) and only shown while
+   editing that task. */
+.task-date {
+    display: none;
+}
+
+.task-active .task-date {
+    display: inline;
+}
+
+/* Friendly due-date pill on the right of a task (e.g. "Today", "Tomorrow",
+   "12 Aug"), rendered by taskMetaHTML/refreshTaskState. Hidden while editing
+   that task, when the raw date phrase in the text (.task-date, above) is
+   shown instead. */
+.task-due {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    margin-top: 4px;
+    font-size: 0.85em;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.task-active .task-due {
+    display: none;
+}
+
+/* An "@Name" mention inside a task's text is hidden by default — the
+   right-aligned .task-people chips (below) surface it instead — and shown as
+   plain text (no avatar/pill styling) while editing that task, matching how
+   the raw text looks everywhere else on the line. */
+.task .mention {
+    display: none;
+}
+
+.task-active .mention {
+    display: inline;
+    background-color: transparent;
+    color: inherit;
+    padding: 0;
+    border-radius: 0;
+    font-size: inherit;
+    white-space: normal;
+}
+
+.task-active .mention::before {
+    content: none;
+}
+
+/* Right-aligned chip(s) — avatar + name — for anyone @mentioned in a task,
+   rendered by taskMetaHTML/refreshTaskState. Hidden while editing that task,
+   when the raw "@Name" text (.mention, above) is shown instead. */
+.task-people {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.task-active .task-people {
+    display: none;
+}
+
+.task-person-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px 2px 2px;
+    border-radius: 999px;
+    background-color: rgba(127, 127, 127, 0.12);
+}
+
+.task-person-name {
+    font-size: 0.8em;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 110px;
+}
+
+/* Highlight the whole task row on hover. */
+.task {
+    border-radius: 4px;
+    transition: background-color 0.12s ease;
+}
+
+.task:hover {
+    background-color: color-mix(in srgb, var(--color-text) 8%, var(--color-background));
+}
+
+/* Open-as-note arrow on the right of each task. Only shown while the task is
+   hovered; accented when the task already links to a note (has-link). */
+.task-open {
+    flex: 0 0 auto;
+    margin-left: auto;
+    align-self: flex-start;
+    margin-top: 2px;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.12s ease, color 0.12s ease, background-color 0.12s ease;
+    user-select: none;
+}
+
+.task:hover .task-open { opacity: 0.8; }
+
+.task:hover .task-open:hover {
+    opacity: 1;
+    color: var(--color-primary);
+    background-color: color-mix(in srgb, var(--color-text) 14%, var(--color-background));
+}
+
+.task:hover .task-open.has-link {
+    opacity: 1;
+    color: var(--color-primary);
+}
+
+.task-open svg { display: block; width: 16px; height: 16px; }
+
+/* Status icon of the referencing task, shown inside the header back-to-task button. */
+.backlink-status {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 4px;
+}
+
+.backlink-status .task-icon {
+    margin-top: 0;
+    width: 16px;
+    height: 16px;
+}
+
+/* Header control for choosing the current note's type (Note / Task /
+   Goal) and, for a task, cycling its state. */
+.note-type-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.note-type-track {
+    display: inline-flex;
+    align-items: center;
+    background: var(--color-background2);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 2px;
+}
+
+.note-type-seg {
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font: inherit;
+    line-height: 1;
+    padding: 4px 11px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.note-type-seg:hover {
+    color: var(--color-text);
+}
+
+.note-type-seg.active {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+}
+
+.note-task-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--color-primary);
+}
+
+.note-task-state .note-task-icon {
+    display: inline-flex;
+    align-items: center;
+}
+
+.note-task-state .note-task-icon .task-icon {
+    width: 16px;
+    height: 16px;
+}
+
+
+/* Bullets */
+.bullet {
+    padding: 4px 0 4px 20px;
+    position: relative;
+}
+
+.bullet::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 11px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-text);
+    border-radius: 50%;
+}
+
+.bullet-indent-1 {
+    padding-left: 40px;
+}
+.bullet-indent-1::before {
+    left: 24px;
+    width: 6px;
+    height: 6px;
+    background-color: transparent;
+    border: 2px solid var(--color-text);
+}
+
+.bullet-indent-2 {
+    padding-left: 60px;
+}
+.bullet-indent-2::before {
+    left: 44px;
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+}
+
+.bullet-indent-3 {
+    padding-left: 80px;
+}
+.bullet-indent-3::before {
+    left: 64px;
+    width: 6px;
+    height: 6px;
+    background-color: transparent;
+    border: 2px solid var(--color-text);
+    border-radius: 1px;
+}
+
+/* Numbered (ordered) list items.
+   Each indent level owns its own counter so nested lists number independently.
+   Non-numbered siblings reset all counters; a numbered item at level N resets
+   every deeper counter so outdenting restarts deeper numbering. */
+#editor {
+    counter-reset: nlvl0 nlvl1 nlvl2 nlvl3;
+}
+#editor > *:not(.numbered) {
+    counter-set: nlvl0 0 nlvl1 0 nlvl2 0 nlvl3 0;
+}
+.numbered {
+    padding: 4px 0 4px 28px;
+    position: relative;
+}
+.numbered:not([class*="numbered-indent-"]) {
+    counter-increment: nlvl0;
+    counter-set: nlvl1 0 nlvl2 0 nlvl3 0;
+}
+.numbered:not([class*="numbered-indent-"])::before {
+    content: counter(nlvl0) ".";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 24px;
+    text-align: right;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+.numbered-indent-1 {
+    padding-left: 48px;
+    counter-increment: nlvl1;
+    counter-set: nlvl2 0 nlvl3 0;
+}
+.numbered-indent-1::before {
+    content: counter(nlvl1) ".";
+    position: absolute;
+    left: 20px;
+    top: 4px;
+    width: 24px;
+    text-align: right;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+.numbered-indent-2 {
+    padding-left: 68px;
+    counter-increment: nlvl2;
+    counter-set: nlvl3 0;
+}
+.numbered-indent-2::before {
+    content: counter(nlvl2) ".";
+    position: absolute;
+    left: 40px;
+    top: 4px;
+    width: 24px;
+    text-align: right;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+.numbered-indent-3 {
+    padding-left: 88px;
+    counter-increment: nlvl3;
+}
+.numbered-indent-3::before {
+    content: counter(nlvl3) ".";
+    position: absolute;
+    left: 60px;
+    top: 4px;
+    width: 24px;
+    text-align: right;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Important blocks */
+.important-block {
+    background-color: rgba(245, 158, 11, 0.18);
+    padding: 12px 16px;
+    margin: 8px 0;
+    border-radius: 8px;
+    position: relative;
+}
+
+.important-block::before {
+    content: '!';
+    display: inline-block;
+    vertical-align: middle;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 700;
+    margin-right: 10px;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+[data-theme="dark"] .important-block {
+    background-color: rgba(245, 158, 11, 0.22);
+}
+
+/* Justification blocks (why? prefix) */
+.justification {
+    background-color: rgba(168, 85, 247, 0.08);
+    padding: 12px 16px 12px 48px;
+    margin: 8px 0;
+    border-radius: 8px;
+    position: relative;
+}
+
+.justification::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    display: block;
+    box-sizing: border-box;
+    width: 22px;
+    height: 22px;
+    background: linear-gradient(135deg, #a855f7, #9333ea);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(168, 85, 247, 0.3);
+}
+
+.justification::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 19px;
+    width: 16px;
+    height: 16px;
+    background-color: white;
+    -webkit-mask: url('icons/arrow-left.svg') center / contain no-repeat;
+    mask: url('icons/arrow-left.svg') center / contain no-repeat;
+}
+
+[data-theme="dark"] .justification {
+    background-color: rgba(168, 85, 247, 0.12);
+}
+
+/* Info blocks (info: prefix) - neutral background tied to the page bg.
+   Light mode mixes in more --color-border than --color-background2 alone
+   provides (which read as too subtle); dark mode keeps --color-background2,
+   which is already lighter than the page background there. */
+.info-block {
+    background-color: color-mix(in srgb, var(--color-background) 78%, var(--color-border) 22%);
+    padding: 12px 16px 12px 48px;
+    margin: 8px 0;
+    border-radius: 8px;
+    position: relative;
+}
+
+[data-theme="dark"] .info-block {
+    background-color: var(--color-background2);
+}
+
+.info-block::before {
+    content: 'i';
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    display: block;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 700;
+    font-style: italic;
+    font-family: Georgia, 'Times New Roman', serif;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+/* Blockquotes (" prefix) */
+.blockquote {
+    border-left: 3px solid var(--color-primary);
+    padding: 4px 14px;
+    margin: 8px 0;
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+[data-theme="dark"] .blockquote {
+    border-left-color: var(--color-primary);
+    color: var(--color-text-secondary);
+}
+
+/* Horizontal rules */
+#editor hr.margin-hr {
+    border: none;
+    border-top: 1px solid color-mix(in srgb, var(--color-primary) 50%, white 50%);
+    margin: 0.8em 0;
+}
+
+[data-theme="dark"] #editor hr.margin-hr {
+    border-top-color: color-mix(in srgb, var(--color-primary) 50%, black 50%);
+}
+
+/* Code blocks */
+#editor p.code-block {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: var(--color-background2);
+    border: none;
+    border-radius: 0;
+    padding-top: 0.4em;
+    padding-right: 0.5em;
+    padding-bottom: 0.4em;
+    padding-left: 0.5em;
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    font-size: 0.9em;
+    line-height: 1.15em !important;
+    color: var(--color-text);
+}
+
+[data-theme="dark"] #editor p.code-block {
+    background-color: var(--color-background2);
+}
+
+/* Tags */
+.tag {
+    background-color: color-mix(in srgb, var(--color-primary) 18%, var(--color-background));
+    color: var(--color-primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+[data-theme="dark"] .tag {
+    background-color: color-mix(in srgb, var(--color-primary) 18%, var(--color-background));
+    color: var(--color-primary);
+}
+
+/* @mentions — see .mention rules in common.css (shared with the Tasks list). */
+
+/* Note links ([[...]]) — rendered as the target note's title; clicking
+   navigates to it. The task variant (.wiki-task) reuses task row styling. */
+/* Scoped under #editor so these beat the generic `#editor a` rule (which would
+   otherwise add its own underline on top of our border-bottom). */
+#editor a.wiki-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    cursor: pointer;
+    border-bottom: 1px solid var(--color-primary);
+    padding-bottom: 1px;
+}
+
+#editor a.wiki-link:hover {
+    opacity: 0.8;
+}
+
+#editor a.wiki-link.wiki-link-missing {
+    color: var(--color-text-secondary, #999);
+    border-bottom-style: dashed;
+    cursor: default;
+}
+
+/* Hover controls on a note link line: open / remove. Hidden until the line is
+   hovered so links stay clean while reading. */
+.wiki-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 6px;
+    vertical-align: middle;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+
+.wiki-line:hover .wiki-controls,
+.wiki-line.wiki-active .wiki-controls,
+.wiki-controls:hover {
+    opacity: 1;
+}
+
+/* The link line the caret has landed on: a subtle highlight so keyboard users
+   can see they're "on" the chip (Enter opens, Backspace/Delete removes). */
+.wiki-line.wiki-active {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 6px;
+}
+
+[data-theme="dark"] .wiki-line.wiki-active {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* The whole task-variant link opens the note on click, so show the pointer
+   over the row (its text and icon), matching the plain note-link anchor. */
+#editor .wiki-task,
+#editor .wiki-task .wiki-task-text,
+#editor .wiki-task .wiki-task-icon {
+    cursor: pointer;
+}
+
+/* In the task-row variant (a flex row) push the controls to the far right. */
+.wiki-task .wiki-controls {
+    margin-left: auto;
+    align-self: center;
+}
+
+/* The task-variant row starts with a leading zero-width space (a caret landing
+   spot for arrow-key navigation). As the first flex item it would otherwise
+   pick up the row's `gap` and push the icon 8px to the right, indenting the row
+   relative to plain task rows. Drop the row gap and instead space the text off
+   the icon explicitly so the icon sits flush left like a normal task. */
+.wiki-task {
+    gap: 0;
+}
+
+.wiki-task .wiki-task-text {
+    margin-left: 8px;
+}
+
+.wiki-open,
+.wiki-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--color-text-secondary, #888);
+}
+
+.wiki-open:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--color-primary);
+}
+
+.wiki-remove:hover {
+    background: rgba(192, 57, 43, 0.12);
+    color: #c0392b;
+}
+
+[data-theme="dark"] .wiki-open:hover,
+[data-theme="dark"] .wiki-remove:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* The "Delete" text label is hidden until the delete option is armed (Right
+   arrow while the caret is on the line). */
+.wiki-remove-label {
+    display: none;
+    font-size: 0.85em;
+    font-weight: 600;
+    line-height: 1;
+    margin-left: 4px;
+}
+
+/* Armed delete option: enlarged, labelled, and styled destructive so it's
+   clearly selected. Enter now removes the whole line. */
+.wiki-line.wiki-delete-armed .wiki-remove {
+    width: auto;
+    padding: 4px 10px;
+    background: #c0392b;
+    color: #fff;
+}
+
+.wiki-line.wiki-delete-armed .wiki-remove-label {
+    display: inline;
+}
+
+/* Play down the open option while delete is armed. */
+.wiki-line.wiki-delete-armed .wiki-open {
+    opacity: 0.4;
+}
+
+/* Tag autocomplete popup */
+.tag-autocomplete-popup {
+    position: fixed;
+    background-color: var(--color-background2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.2), 0 0 5px rgba(255, 255, 255, 0.5) inset;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 2000;
+    min-width: 200px;
+    max-width: 400px;
+    animation: slideIn 0.2s ease;
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                backdrop-filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] .tag-autocomplete-popup {
+    background-color: var(--color-background2);
+    border: 1px solid var(--color-border);
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.4), 0 0 5px rgba(255, 255, 255, 0.1) inset;
+}
+
+.tag-autocomplete-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    color: var(--color-text);
+    font-size: var(--font-size-base);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.tag-autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.tag-autocomplete-item:hover,
+.tag-autocomplete-item.selected {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+}
+
+.note-link-create-item {
+    font-style: italic;
+}
+
+/* Active-line type indicator, floated in the editor's left gutter. Shows the
+   Margin prefix character of the line the caret is on; sits outside the reading
+   column so it never indents the text. */
+#line-type-gutter-icon {
+    position: fixed;
+    z-index: 1500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 28px;
+    padding: 0 6px;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-family: var(--font-family-base);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.12s ease, background-color 0.12s ease, color 0.12s ease;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#line-type-gutter-icon.visible { opacity: 0.5; }
+
+#line-type-gutter-icon.visible:hover {
+    opacity: 1;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+}
+
+/* Drop target for image files. The fixed marker follows the caret without
+   changing the editor's layout, while the active treatment makes the whole
+   note feel like the valid drop surface. */
+#editor.image-drop-active {
+    outline: 1px solid color-mix(in srgb, var(--color-primary) 50%, transparent);
+    outline-offset: -1px;
+}
+
+#image-drop-indicator {
+    position: fixed;
+    z-index: 2500;
+    display: none;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+}
+
+#image-drop-indicator.visible {
+    display: block;
+}
+
+.image-drop-indicator-line {
+    position: absolute;
+    left: -1px;
+    top: -6px;
+    width: 2px;
+    height: calc(var(--image-drop-height, 24px) + 12px);
+    border-radius: 999px;
+    background: var(--color-primary);
+}
+
+.image-drop-indicator-image-overlay {
+    display: none;
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    width: var(--image-drop-width, 0px);
+    height: var(--image-drop-height, 0px);
+    box-sizing: border-box;
+    border: 2px solid var(--color-primary);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.image-drop-indicator-label {
+    position: absolute;
+    left: 10px;
+    top: -22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 55%, var(--color-border));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-background) 92%, var(--color-primary));
+    color: var(--color-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+#image-drop-indicator.label-left .image-drop-indicator-label {
+    left: auto;
+    right: 10px;
+}
+
+#image-drop-indicator.image-replace .image-drop-indicator-line {
+    display: none;
+}
+
+#image-drop-indicator.image-replace .image-drop-indicator-image-overlay {
+    display: block;
+}
+
+#image-drop-indicator.image-replace .image-drop-indicator-label {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.inline-image.image-drop-replace-target {
+    opacity: 0.72;
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* The line-type and format menus reuse .tag-autocomplete-popup for their
+   background/border/radius, but scroll via this inner wrapper instead of
+   scrolling themselves — overflow lives one level in so the outer element's
+   border-radius can clip it with overflow: hidden, keeping the scrollbar off
+   the rounded corners. */
+#line-type-menu-popup,
+#format-menu-popup {
+    max-height: none;
+    overflow: hidden;
+    padding: 4px;
+}
+
+.popup-menu-scroll {
+    max-height: 292px;
+    overflow-y: auto;
+}
+
+.popup-menu-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.popup-menu-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Type-picker rows: an optional glyph badge, a label, and a right-aligned
+   shortcut pill. Shared by the line-type picker and the "\" format menu. */
+.line-type-item,
+.format-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.menu-item-label {
+    flex: 1 1 auto;
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .menu-item-label {
+    color: var(--color-text);
+}
+
+.line-type-item-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.7em;
+    height: 1.7em;
+    padding: 0 0.3em;
+    box-sizing: border-box;
+    border-radius: 5px;
+    /* Light mode: light-grey chip, bold near-black text. Dark mode reverses
+       that pairing — dark-grey chip, bold near-white text — rather than
+       reusing the muted --color-border tokens, which read as too washed out
+       here. */
+    background: var(--color-background2);
+    color: var(--color-text);
+    font-weight: 700;
+    font-size: 0.85em;
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .line-type-item-glyph {
+    background: var(--color-background2);
+    color: var(--color-text);
+}
+
+.line-type-item.selected .line-type-item-glyph,
+.line-type-item:hover .line-type-item-glyph {
+    background: var(--color-on-primary);
+    color: var(--color-primary);
+}
+
+/* The label has its own explicit near-black/near-white color above, which
+   would otherwise block inheriting the highlighted row's on-primary text
+   color, so it needs its own hover/selected override too. */
+.line-type-item.selected .menu-item-label,
+.line-type-item:hover .menu-item-label,
+.format-menu-item.selected .menu-item-label,
+.format-menu-item:hover .menu-item-label {
+    color: var(--color-on-primary);
+}
+
+/* Right-aligned pill showing the Margin prefix that types this block type
+   inline (e.g. ">" for a heading), styled as a keyboard-shortcut hint rather
+   than an icon. Same light-grey/dark-grey reversal as the glyph badge. */
+.menu-item-shortcut {
+    flex-shrink: 0;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--color-background2);
+    color: var(--color-text);
+    font-weight: 700;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.78em;
+    white-space: nowrap;
+}
+
+[data-theme="dark"] .menu-item-shortcut {
+    background: var(--color-background2);
+    color: var(--color-text);
+}
+
+.line-type-item.selected .menu-item-shortcut,
+.line-type-item:hover .menu-item-shortcut,
+.format-menu-item.selected .menu-item-shortcut,
+.format-menu-item:hover .menu-item-shortcut {
+    background: var(--color-on-primary);
+    color: var(--color-primary);
+}
+
+/* Links */
+#editor a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+[data-theme="dark"] #editor a {
+    color: var(--color-primary);
+}
+
+/* Whole-line links expose their metadata through the hover cog while keeping
+   the stored URL and JSON metadata out of the rendered text. */
+#editor .external-link-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+}
+
+#editor .external-link-line > .external-link,
+#editor .external-link-line > .external-link-plain {
+    min-width: 0;
+}
+
+#editor a.external-link.link-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 14px;
+    border: 1px solid var(--color-primary-dark);
+    border-radius: 6px;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+#editor a.external-link.link-button:hover {
+    background-color: var(--color-primary-hover);
+    color: var(--color-on-primary);
+    opacity: 1;
+}
+
+#editor a.external-link.link-button-secondary {
+    background-color: var(--color-background);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+#editor a.external-link.link-button-secondary:hover {
+    background-color: var(--color-background2);
+    color: var(--color-text);
+}
+
+.link-controls {
+    display: inline-flex;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+
+.external-link-line > .external-link:hover + .link-controls,
+.external-link-line > .external-link:focus-visible + .link-controls,
+.link-controls:hover {
+    opacity: 1;
+}
+
+.link-settings {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font: inherit;
+}
+
+.link-settings:hover,
+.link-settings:focus-visible {
+    background: var(--color-background2);
+    color: var(--color-primary);
+}
+
+.link-metadata-error {
+    color: #c0392b !important;
+    margin-top: 10px !important;
+}
+
+#link-metadata-modal .template-field-row select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: var(--color-background);
+    color: var(--color-text);
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+#link-metadata-modal .template-field-row select:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+}
+
+/* Images */
+.inline-image {
+    max-width: 400px;
+    max-height: 300px;
+    border-radius: 8px;
+    display: block;
+    margin: 8px 0;
+    cursor: pointer;
+}
+
+/* YouTube embed */
+.youtube-embed {
+    display: block;
+    max-width: 480px;
+    aspect-ratio: 16 / 9;
+    margin: 8px 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.youtube-embed iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* Image popup overlay */
+.image-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    cursor: pointer;
+}
+
+.image-popup-overlay.show {
+    display: flex;
+}
+
+.image-popup-container {
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.image-popup-container img {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease-in;
+}
+
+.image-popup-container img.loaded {
+    opacity: 1;
+}
+
+.image-popup-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 18px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    white-space: nowrap;
+}
+
+.image-popup-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.image-popup-container img.loaded + .image-popup-loading {
+    display: none;
+}
+
+.image-popup-container:has(img.loaded) .image-popup-loading {
+    display: none;
+}
+
+.image-popup-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 5px 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    transition: opacity 0.2s ease;
+}
+
+.image-popup-close:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.image-popup-container:has(.image-popup-loading[style*="flex"]) .image-popup-close {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Image paste loading indicator */
+.image-paste-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    font-size: 14px;
+    color: var(--color-text);
+    margin: 8px 0;
+}
+
+[data-theme="dark"] .image-paste-loading {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.image-paste-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+[data-theme="dark"] .image-paste-spinner {
+    border-color: rgba(255, 255, 255, 0.2);
+    border-top-color: var(--color-primary);
+}
+
+/* Paragraphs */
+#editor p {
+    margin: 0;
+    padding: 2px 0;
+    min-height: 1.2em; /* Ensure minimum height for empty paragraphs */
+}
+
+/* Question blocks */
+.question-block {
+    background-color: rgba(59, 130, 246, 0.08);
+    padding: 12px 16px;
+    margin: 8px 0;
+    border-radius: 8px;
+    position: relative;
+}
+
+.question-block::before {
+    content: '?';
+    display: inline-block;
+    vertical-align: middle;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 700;
+    margin-right: 10px;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+[data-theme="dark"] .question-block {
+    background-color: rgba(59, 130, 246, 0.12);
+}
+
+/* Answer blocks */
+.answer-block {
+    background-color: rgba(34, 197, 94, 0.08);
+    padding: 12px 16px;
+    margin: 8px 0;
+    border-radius: 8px;
+    position: relative;
+}
+
+.answer-block::before {
+    content: 'A';
+    display: inline-block;
+    vertical-align: middle;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+    margin-right: 10px;
+    box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
+}
+
+[data-theme="dark"] .answer-block {
+    background-color: rgba(34, 197, 94, 0.12);
+}
+
+/* Visual grouping: make Q/A blocks touch when adjacent */
+.question-block + .answer-block {
+    margin-top: -4px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.question-block:has(+ .answer-block) {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: 0;
+}
+
+/* Visual grouping: make decision/why blocks touch when adjacent */
+.important-block + .justification {
+    margin-top: -4px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.important-block:has(+ .justification) {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: 0;
+}
+
+/* Tables */
+.margin-table {
+    /* Fixed layout: column widths come from <colgroup><col>, not from cell content.
+       Typing in a cell cannot resize the column. Explicit drag/keyboard/menu only. */
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 8px 0;
+    border: 2px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+}
+
+/* During active drag-resize: neutralize cursor jitter and prevent text selection. */
+.margin-table.margin-table--resizing {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+.margin-table.margin-table--resizing * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
+/* Cell content must never force a column wider than its unit allocation. */
+.margin-table th,
+.margin-table td {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.margin-table th,
+.margin-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border: 2px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+    min-height: 32px;
+    box-sizing: border-box;
+}
+
+/* Darker borders in light mode */
+:not([data-theme="dark"]) .margin-table {
+    border: 2px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+}
+
+:not([data-theme="dark"]) .margin-table th,
+:not([data-theme="dark"]) .margin-table td {
+    border: 2px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+}
+
+/* Keep lighter borders in dark mode */
+[data-theme="dark"] .margin-table {
+    border: 2px solid color-mix(in srgb, var(--color-border) 20%, transparent);
+}
+
+[data-theme="dark"] .margin-table th,
+[data-theme="dark"] .margin-table td {
+    border: 2px solid color-mix(in srgb, var(--color-border) 20%, transparent);
+}
+
+/* Hide internal borders by making them transparent */
+.margin-table th:not(:last-child),
+.margin-table td:not(:last-child) {
+    border-right-color: transparent;
+}
+
+.margin-table tr:not(:last-child) th,
+.margin-table tr:not(:last-child) td {
+    border-bottom-color: transparent;
+}
+
+.margin-table th {
+    background-color: var(--color-primary);
+    background-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+    font-weight: bold;
+    /* Header sits on a 50%-opacity primary, i.e. a blend with the page
+       background, so track the theme's text colour rather than --color-on-primary. */
+    color: var(--color-text);
+}
+
+/* Light mode: use border color for headers */
+:not([data-theme="dark"]) .margin-table th {
+    background-color: color-mix(in srgb, var(--color-border) 80%, transparent);
+    color: var(--color-text);
+}
+
+.margin-table tbody tr:nth-child(even) {
+    background-color: var(--color-background2);
+}
+
+[data-theme="dark"] .margin-table th {
+    background-color: var(--color-primary);
+    background-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .margin-table tbody tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Column highlighting */
+.margin-table td.column-highlighted,
+.margin-table th.column-highlighted {
+    background-color: rgba(173, 216, 230, 0.3) !important;
+}
+
+[data-theme="dark"] .margin-table td.column-highlighted,
+[data-theme="dark"] .margin-table th.column-highlighted {
+    background-color: rgba(173, 216, 230, 0.2) !important;
+}
+
+/* Row highlighting */
+.margin-table tr.row-highlighted td,
+.margin-table tr.row-highlighted th {
+    background-color: rgba(173, 216, 230, 0.3) !important;
+}
+
+[data-theme="dark"] .margin-table tr.row-highlighted td,
+[data-theme="dark"] .margin-table tr.row-highlighted th {
+    background-color: rgba(173, 216, 230, 0.2) !important;
+}
+
+/* Active cell highlighting */
+.margin-table td.cell-active,
+.margin-table th.cell-active {
+    border-color: var(--color-primary) !important;
+    outline: 1px solid var(--color-primary);
+    outline-offset: -1px;
+}
+
+[data-theme="dark"] .margin-table td.cell-active,
+[data-theme="dark"] .margin-table th.cell-active {
+    border-color: var(--color-primary) !important;
+    outline: 1px solid var(--color-primary);
+    outline-offset: -1px;
+}
+
+/* Cell edit mode (F2) - dashed border with pulsing glow */
+.margin-table td.cell-edit-mode,
+.margin-table th.cell-edit-mode {
+    border: 2px dashed var(--color-primary) !important;
+    outline: none !important;
+    animation: cell-edit-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes cell-edit-pulse {
+    0%, 100% { box-shadow: 0 0 2px 0px var(--color-primary); }
+    50% { box-shadow: 0 0 4px 1px var(--color-primary); }
+}
+
+/* Table settings cog */
+#table-settings-cog:hover svg {
+    fill: var(--color-text) !important;
+}
+
+/* Calculated formula values */
+.margin-table .formula-result {
+    font-weight: bold;
+}
+
+/* Formula cells - slightly darker background */
+.margin-table td[data-original-content],
+.margin-table th[data-original-content] {
+    background-color: color-mix(in srgb, var(--color-background) 90%, var(--color-border) 10%);
+}
+
+[data-theme="dark"] .margin-table td[data-original-content],
+[data-theme="dark"] .margin-table th[data-original-content] {
+    background-color: color-mix(in srgb, var(--color-background) 90%, var(--color-border) 10%);
+}
+
+/* Readonly mode */
+#editor[contenteditable="false"] {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Toggle Switch Styles */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-border);
+    transition: all 0.3s ease;
+    border-radius: 24px;
+    border: 1px solid var(--color-border-strong);
+    z-index: 1;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--color-background2);
+    transition: all 0.3s ease;
+    border-radius: 50%;
+}
+
+.toggle-switch input:checked+.toggle-slider {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary-dark);
+}
+
+.toggle-switch input:checked+.toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.toggle-switch input:focus-visible+.toggle-slider {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+}
+
+/* Highlight the focused/active toggle row in the modal */
+.modal-body label:focus-within {
+    background-color: var(--color-background2);
+    border-radius: 6px;
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Template placeholder fill-in fields (#template-fields-body) */
+.template-field-row {
+    margin-bottom: 14px;
+}
+
+.template-field-row label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+}
+
+.template-field-row input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: var(--color-background);
+    color: var(--color-text);
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.template-field-row input:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+}
+
+#template-fields-confirm:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.readonly-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+    z-index: 10;
+    display: none;
+}
+
+.readonly-overlay.show {
+    display: block;
+}
+
+#noteId {
+    display: none;
+}
+
+/* Info panel styles */
+.info-panel {
+    display: flex;
+    height: 100%;
+    min-height: 300px;
+}
+
+.info-tabs {
+    background-color: var(--color-background2);
+    width: 60px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--color-border);
+}
+
+.info-tab {
+    padding: 15px 0;
+    text-align: center;
+    cursor: pointer;
+    border-bottom: 1px solid var(--color-border);
+    transition: background-color 0.2s;
+    font-size: var(--font-size-base);
+}
+
+.info-tab:hover {
+    background-color: var(--color-background2);
+}
+
+.info-tab.active {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+}
+
+.info-content {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    max-height: calc(80vh - 60px); /* Account for panel padding and tabs */
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Overlay for panels */
+.panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 999;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.panel-overlay.show {
+    display: block;
+    opacity: 1;
+}
+
+#editor strong,
+#editor b {
+    font-weight: 900;
+    -webkit-text-stroke: 0.6px currentColor;
+    text-stroke: 0.6px currentColor;
+}
+
+/* macOS: WKWebView already renders text heavier than Windows' WebView2, so the
+   900 weight + 0.6px stroke above looks overly heavy. Lighten bold by roughly
+   half — drop to 700 and halve the stroke. */
+:root[data-os="mac"] #editor strong,
+:root[data-os="mac"] #editor b {
+    font-weight: 700;
+    -webkit-text-stroke: 0.3px currentColor;
+    text-stroke: 0.3px currentColor;
+}
+
+/* Home page dashboard: every line is an independent widget tile arranged into
+   a 4-column grid. A widget's column span (1-4, from its trailing
+   {"span":N} metadata) and row span (1+, from {"rows":N}) are set inline
+   per-widget; CSS Grid's own auto-placement bumps a widget that doesn't fit
+   the remaining columns to the next row for free. Tiles are a fixed size
+   (grid-auto-rows below) rather than growing to fit typed content — content
+   that doesn't fit is clipped, and a bigger {"rows":N} is how you make room. */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 100px;
+    gap: 12px;
+    padding: 4px;
+}
+
+.dashboard-widget {
+    position: relative;
+    height: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 12px 14px;
+    border-radius: 8px;
+    /* --color-background2 barely differs from the page background in light
+       mode, so use a visibly darker tile shade there; dark mode keeps
+       --color-background2, which already reads as a distinct surface. */
+    background-color: #ebebec;
+}
+
+[data-theme="dark"] .dashboard-widget {
+    background-color: var(--color-background2);
+}
+
+/* An empty widget: dashed border, and a small centered "+" that opens the
+   picker. Deliberately not a full-tile overlay — the rest of the tile stays
+   clickable so you can still just click in and type plain text instead. */
+.dashboard-widget-empty-state {
+    border: 1px dashed var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dashboard-widget-add {
+    position: relative; /* so z-index lifts it above the hover veil */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    color: var(--color-text-secondary, #888);
+    cursor: pointer;
+}
+
+.dashboard-widget-add:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .dashboard-widget-add:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* The predefined-widget picker menu, opened from a widget's "+". */
+.dashboard-widget-picker {
+    position: fixed;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    padding: 4px;
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+    min-width: 140px;
+    /* Safety net for a viewport too short to fit the whole menu even after
+       flipping it above the anchor (see openDashboardWidgetPicker) — scroll
+       rather than clip. */
+    max-height: calc(100vh - 16px);
+    overflow-y: auto;
+}
+
+.dashboard-widget-picker-option {
+    padding: 6px 10px;
+    border: none;
+    background: none;
+    color: var(--color-text);
+    font-size: 0.85rem;
+    text-align: left;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.dashboard-widget-picker-divider {
+    height: 1px;
+    margin: 4px 6px;
+    background-color: var(--color-border);
+}
+
+.dashboard-widget-picker-option:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .dashboard-widget-picker-option:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Predefined widgets (=today, =my-tasks, =priority-tasks). */
+/* Headings rendered inside a widget (see renderDashboardMarginLine) — the
+   document's h2-h4 sizes (up to ~2.4em) would blow out a tile, so scale them
+   down to fit while keeping the same relative size steps. */
+.dashboard-widget h2,
+.dashboard-widget h3,
+.dashboard-widget h4 {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.dashboard-widget h2 { font-size: 1.1rem; }
+.dashboard-widget h3 { font-size: 1rem; }
+.dashboard-widget h4 { font-size: 0.9rem; }
+
+.dashboard-widget-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    color: var(--color-text-secondary, #888);
+}
+
+.dashboard-widget-content {
+    overflow: auto;
+    height: calc(100% - 22px);
+}
+
+.dashboard-widget-empty {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary, #888);
+}
+
+.dashboard-counter-value {
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.dashboard-counter-label {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary, #888);
+}
+
+/* Bottom-right, clear of the drag handle (top-left) and remove icon
+   (top-right) — it used to share the remove icon's corner. Only shown on
+   widget hover (unlike those two, which are always visible in edit mode),
+   but gets its own background chip so it still reads clearly as a button
+   the moment it appears. */
+.dashboard-counter-configure {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background-color: rgba(0, 0, 0, 0.06);
+    color: var(--color-text-secondary, #888);
+    cursor: pointer;
+}
+
+[data-theme="dark"] .dashboard-counter-configure {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.dashboard-widget:hover .dashboard-counter-configure {
+    display: flex;
+}
+
+.dashboard-counter-configure:hover {
+    background-color: rgba(0, 0, 0, 0.14);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .dashboard-counter-configure:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Sized and spaced like a native macOS settings panel: generous padding,
+   a soft shadow, and every row (label + control) pinned to the same
+   fixed width so the stacked selects/inputs line up edge-to-edge. */
+.dashboard-counter-config {
+    width: 240px;
+    padding: 14px 16px;
+    gap: 12px;
+    border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+}
+
+.dashboard-counter-config-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.dashboard-counter-config-row > label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-secondary, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.dashboard-counter-config select,
+.dashboard-counter-config input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    height: 30px;
+    font-size: 0.9rem;
+    padding: 4px 8px;
+}
+
+.dashboard-counter-config-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-counter-config-filter-row select {
+    flex: 1;
+    min-width: 0;
+}
+
+.dashboard-counter-config-clear {
+    flex: none;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: var(--color-text-secondary, #888);
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.dashboard-counter-config-clear:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .dashboard-counter-config-clear:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.dashboard-counter-config select,
+.dashboard-counter-config input {
+    border: 1px solid var(--color-border);
+    border-radius: 7px;
+    background-color: var(--color-background);
+    color: var(--color-text);
+}
+
+.dashboard-today-weekday {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.dashboard-today-date {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary, #888);
+}
+
+.dashboard-task-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.dashboard-task-row:hover .dashboard-task-text {
+    text-decoration: underline;
+}
+
+.dashboard-task-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    color: var(--color-text-secondary, #888);
+}
+
+.dashboard-task-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-task-note {
+    flex-shrink: 0;
+    color: var(--color-text-secondary, #888);
+    font-size: 0.75rem;
+}
+
+/* Resize chevrons: one per edge per mode, hidden until the tile is hovered.
+   The outward (grow) chevron sits at the edge midpoint pointing out; the
+   inward (shrink) one sits just inside it pointing back in. Directions that
+   can't apply get the [hidden] attribute from updateDashboardResizeArrows.
+   The base SVG points right; transforms rotate it per direction/mode. */
+.dashboard-resize-arrow {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+    z-index: 2;
+}
+
+.dashboard-resize-arrow svg {
+    width: 14px;
+    height: 14px;
+}
+
+.dashboard-widget:hover .dashboard-resize-arrow {
+    opacity: 1;
+}
+
+.dashboard-resize-arrow:hover {
+    background: var(--color-primary-hover);
+}
+
+.dashboard-resize-arrow[hidden],
+.dashboard-widget-empty-state > .dashboard-resize-arrow,
+.dashboard-widget-empty-state > .dashboard-widget-drag-handle {
+    display: none;
+}
+
+/* Edit mode, tile hovered: veil the widget's content with a translucent wash
+   of the tile background so the layout controls stand out instead of blurring
+   into the widget's own text. A ::after overlay (not per-child opacity) since
+   plain widgets hold bare text nodes CSS can't select; controls sit above it
+   via z-index and get full text color. */
+body:not(.dashboard-widget-drag-active) #editor:not(.dashboard-view-mode) .dashboard-widget:hover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--color-background);
+    opacity: 0.75;
+    pointer-events: none;
+    z-index: 1;
+}
+
+#editor:not(.dashboard-view-mode) .dashboard-widget:hover > .dashboard-resize-arrow,
+#editor:not(.dashboard-view-mode) .dashboard-widget:hover > .dashboard-widget-drag-handle,
+#editor:not(.dashboard-view-mode) .dashboard-widget:hover > .dashboard-widget-remove,
+#editor:not(.dashboard-view-mode) .dashboard-widget:hover > .dashboard-widget-add {
+    z-index: 2;
+}
+
+
+.dashboard-resize-arrow[data-dir="right"][data-mode="grow"]   { right: 2px;   top: 50%;  transform: translateY(-50%); }
+.dashboard-resize-arrow[data-dir="right"][data-mode="shrink"] { right: 27px;  top: 50%;  transform: translateY(-50%) rotate(180deg); }
+.dashboard-resize-arrow[data-dir="left"][data-mode="grow"]    { left: 2px;    top: 50%;  transform: translateY(-50%) rotate(180deg); }
+.dashboard-resize-arrow[data-dir="left"][data-mode="shrink"]  { left: 27px;   top: 50%;  transform: translateY(-50%); }
+.dashboard-resize-arrow[data-dir="up"][data-mode="grow"]      { top: 2px;     left: 50%; transform: translateX(-50%) rotate(-90deg); }
+.dashboard-resize-arrow[data-dir="up"][data-mode="shrink"]    { top: 27px;    left: 50%; transform: translateX(-50%) rotate(90deg); }
+.dashboard-resize-arrow[data-dir="down"][data-mode="grow"]    { bottom: 2px;  left: 50%; transform: translateX(-50%) rotate(90deg); }
+.dashboard-resize-arrow[data-dir="down"][data-mode="shrink"]  { bottom: 27px; left: 50%; transform: translateX(-50%) rotate(-90deg); }
+
+/* Remove icon: always visible in edit mode (top-right corner) — a bordered
+   chip so it reads as a control rather than stray text, brightening further
+   on hover. */
+.dashboard-widget-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-background);
+    color: var(--color-text-secondary, #888);
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.12s ease;
+}
+
+.dashboard-widget-remove svg {
+    width: 14px;
+    height: 14px;
+}
+
+.dashboard-widget:hover .dashboard-widget-remove {
+    opacity: 1;
+}
+
+.dashboard-widget-remove:hover {
+    background: #d9534f;
+    border-color: #d9534f;
+    color: #fff;
+}
+
+/* Drag handle: always visible in edit mode, mirrored to the top-left
+   corner — same bordered-chip treatment as the remove icon so the two read
+   as a matched pair of controls. */
+.dashboard-widget-drag-handle {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-background);
+    color: var(--color-text-secondary, #888);
+    cursor: grab;
+    opacity: 0.85;
+    transition: opacity 0.12s ease;
+}
+
+.dashboard-widget-drag-handle svg {
+    width: 14px;
+    height: 14px;
+}
+
+.dashboard-widget:hover .dashboard-widget-drag-handle {
+    opacity: 1;
+}
+
+.dashboard-widget-drag-handle:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .dashboard-widget-drag-handle:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.dashboard-widget-dragging {
+    opacity: 0.4;
+    /* Transparent to hit-testing so elementFromPoint in dashboardDragMove
+       finds the gap placeholder rendered *under* the dragged widget's own
+       cells — otherwise a wide/tall widget can never be moved by just one
+       cell, since its own footprint covers the destination. Painted above
+       those placeholders so the drag still looks like the widget moving. */
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Highlights whichever widget/placeholder is currently under the pointer
+   while dragging (see dashboardDragMove) — shows exactly where a drop will
+   land, since the actual move doesn't happen until pointerup. */
+.dashboard-widget-drop-target {
+    border-color: var(--color-primary);
+    border-width: 2px;
+    background-color: var(--color-primary);
+    opacity: 0.35;
+}
+
+/* Hovered cell where the drop is refused — the dragged widget's footprint
+   would overlap another widget (see dashboardDropWouldClash). */
+.dashboard-widget-drop-invalid {
+    border-color: #d9534f;
+    border-width: 2px;
+    background-color: #d9534f;
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* Set on <body> for the duration of a manual mouse-driven widget drag (see
+   dashboardDragMove/dashboardDragEnd) so the drag reads as a drag instead of
+   a text selection. */
+body.dashboard-widget-drag-active {
+    cursor: grabbing;
+    user-select: none;
+}
+
+/* Read-only dashboard view (the default on load — see toggleDashboardEditMode).
+   Text is still editable; only the layout-editing chrome is hidden. Empty
+   widgets disappear entirely rather than just losing their "+" — their
+   underlying blank line is still saved (see extractDashboardPlainText), so
+   nothing is lost by hiding them, they just don't take up grid space here. */
+.dashboard-view-mode .dashboard-widget-empty-state,
+.dashboard-view-mode .dashboard-resize-arrow,
+.dashboard-view-mode .dashboard-widget-drag-handle,
+.dashboard-view-mode .dashboard-widget-remove,
+.dashboard-view-mode .dashboard-counter-configure {
+    display: none;
+}
+
+/* =counter and =today are self-explanatory at a glance — their "Counter"/
+   "Today" label is only useful while picking/arranging widgets in edit mode. */
+.dashboard-view-mode .dashboard-widget[data-widget="counter"] > .dashboard-widget-title,
+.dashboard-view-mode .dashboard-widget[data-widget="today"] > .dashboard-widget-title {
+    display: none;
+}
+
+.dashboard-view-mode .dashboard-widget[data-widget="counter"] > .dashboard-widget-content,
+.dashboard-view-mode .dashboard-widget[data-widget="today"] > .dashboard-widget-content {
+    height: 100%;
+}
+
+.dashboard-widget[data-widget="counter"] > .dashboard-widget-content,
+.dashboard-widget[data-widget="today"] > .dashboard-widget-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+#dashboard-edit-toggle.active {
+    color: var(--color-primary);
+}

@@ -1,0 +1,485 @@
+/*
+ * Generic styles for the HTML emitted by margin-renderer.js.
+ * The rules are scoped to .margin-document so the renderer can be embedded in
+ * an existing site without changing the site's body or heading styles.
+ */
+
+.margin-document {
+    --margin-background: var(--color-background, #ffffff);
+    --margin-background2: var(--color-background2, #f3f4f5);
+    --margin-text: var(--color-text, #1a202c);
+    --margin-text-secondary: var(--color-text-secondary, #4a5568);
+    --margin-border: var(--color-border, #d1d5db);
+    --margin-primary: var(--color-primary, #4a9eff);
+    box-sizing: border-box;
+    color: var(--margin-text);
+    background: var(--margin-background);
+    font-family: var(--font-family-base, system-ui, -apple-system, "Segoe UI", sans-serif);
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+.margin-document *,
+.margin-document *::before,
+.margin-document *::after {
+    box-sizing: border-box;
+}
+
+.margin-document h1,
+.margin-document h2,
+.margin-document h3,
+.margin-document h4 {
+    font-family: var(--font-family-heading, inherit);
+    color: var(--margin-text);
+    font-weight: 700;
+    margin: 0;
+}
+
+.margin-document h1 {
+    font-size: 2.5em;
+    padding: 0.25em 0;
+}
+
+.margin-document h2 {
+    font-size: 2em;
+    color: color-mix(in srgb, var(--margin-text) 83%, var(--margin-text-secondary));
+    padding: 0.2em 0;
+}
+
+.margin-document h3 {
+    font-size: 1.6em;
+    color: color-mix(in srgb, var(--margin-text) 67%, var(--margin-text-secondary));
+    padding: 0.15em 0;
+}
+
+.margin-document h4 {
+    font-size: 1.3em;
+    color: color-mix(in srgb, var(--margin-text) 50%, var(--margin-text-secondary));
+    padding: 0.1em 0;
+}
+
+.margin-document p {
+    margin: 0;
+    padding: 0.15em 0;
+}
+
+.margin-document a {
+    color: var(--margin-primary);
+    text-decoration: underline;
+}
+
+.margin-document a:hover {
+    opacity: 0.8;
+}
+
+.margin-document .external-link-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    min-height: 2em;
+}
+
+.margin-document a.external-link.link-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45em 0.85em;
+    border: 1px solid var(--margin-primary);
+    border-radius: 0.4em;
+    background: var(--margin-primary);
+    color: var(--margin-background);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.margin-document a.external-link.link-button:hover {
+    opacity: 0.85;
+}
+
+.margin-document a.external-link.link-button-secondary {
+    background: var(--margin-background2);
+    border-color: var(--margin-border);
+    color: var(--margin-text-secondary);
+}
+
+.margin-document .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5em;
+    padding: 0.25em 0;
+    border-radius: 0.25em;
+}
+
+.margin-document .task:hover {
+    background: color-mix(in srgb, var(--margin-text) 8%, var(--margin-background));
+}
+
+.margin-document .task-indent-1 { padding-left: 1.25em; }
+.margin-document .task-indent-2 { padding-left: 2.5em; }
+.margin-document .task-indent-3 { padding-left: 3.75em; }
+
+.margin-document .task-icon,
+.margin-document .task-icon-holder {
+    width: 1em;
+    height: 1em;
+    flex: 0 0 auto;
+    margin-top: 0.25em;
+    color: var(--margin-primary);
+}
+
+.margin-document .task-icon-holder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.margin-document .task-icon-holder .task-icon {
+    margin-top: 0;
+}
+
+.margin-document .task-urgent > span:last-child,
+.margin-document .task-important > span:last-child {
+    font-weight: 600;
+}
+
+.margin-document .bullet,
+.margin-document .numbered {
+    position: relative;
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
+}
+
+.margin-document .bullet {
+    padding-left: 1.25em;
+}
+
+.margin-document .bullet::before {
+    content: "";
+    position: absolute;
+    left: 0.25em;
+    top: 0.8em;
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.margin-document .bullet-indent-1 { padding-left: 2.5em; }
+.margin-document .bullet-indent-2 { padding-left: 3.75em; }
+.margin-document .bullet-indent-3 { padding-left: 5em; }
+
+.margin-document .bullet-indent-1::before {
+    left: 1.5em;
+    width: 0.4em;
+    height: 0.4em;
+    background: transparent;
+    border: 0.12em solid currentColor;
+}
+
+.margin-document .bullet-indent-2::before {
+    left: 2.75em;
+    width: 0.4em;
+    height: 0.4em;
+    border-radius: 0.08em;
+}
+
+.margin-document .bullet-indent-3::before {
+    left: 4em;
+    width: 0.4em;
+    height: 0.4em;
+    background: transparent;
+    border: 0.12em solid currentColor;
+    border-radius: 0.08em;
+}
+
+.margin-document {
+    counter-reset: margin-numbered-0 margin-numbered-1 margin-numbered-2 margin-numbered-3;
+}
+
+.margin-document > *:not(.numbered) {
+    counter-set: margin-numbered-0 0 margin-numbered-1 0 margin-numbered-2 0 margin-numbered-3 0;
+}
+
+.margin-document .numbered {
+    padding-left: 1.75em;
+}
+
+.margin-document .numbered:not([class*="numbered-indent-"]) {
+    counter-increment: margin-numbered-0;
+    counter-set: margin-numbered-1 0 margin-numbered-2 0 margin-numbered-3 0;
+}
+
+.margin-document .numbered:not([class*="numbered-indent-"])::before,
+.margin-document .numbered-indent-1::before,
+.margin-document .numbered-indent-2::before,
+.margin-document .numbered-indent-3::before {
+    position: absolute;
+    top: 0.25em;
+    width: 1.5em;
+    text-align: right;
+    color: var(--margin-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.margin-document .numbered:not([class*="numbered-indent-"])::before {
+    content: counter(margin-numbered-0) ".";
+    left: 0;
+}
+
+.margin-document .numbered-indent-1 {
+    padding-left: 3em;
+    counter-increment: margin-numbered-1;
+    counter-set: margin-numbered-2 0 margin-numbered-3 0;
+}
+
+.margin-document .numbered-indent-1::before {
+    content: counter(margin-numbered-1) ".";
+    left: 1.25em;
+}
+
+.margin-document .numbered-indent-2 {
+    padding-left: 4.25em;
+    counter-increment: margin-numbered-2;
+    counter-set: margin-numbered-3 0;
+}
+
+.margin-document .numbered-indent-2::before {
+    content: counter(margin-numbered-2) ".";
+    left: 2.5em;
+}
+
+.margin-document .numbered-indent-3 {
+    padding-left: 5.5em;
+    counter-increment: margin-numbered-3;
+}
+
+.margin-document .numbered-indent-3::before {
+    content: counter(margin-numbered-3) ".";
+    left: 3.75em;
+}
+
+.margin-document .important-block,
+.margin-document .justification,
+.margin-document .info-block,
+.margin-document .question-block,
+.margin-document .answer-block {
+    position: relative;
+    margin: 0.5em 0;
+    padding: 0.75em 1em;
+    border-radius: 0.5em;
+}
+
+.margin-document .important-block {
+    background: rgba(245, 158, 11, 0.18);
+}
+
+.margin-document .important-block::before,
+.margin-document .question-block::before,
+.margin-document .answer-block::before {
+    display: inline-block;
+    width: 1.4em;
+    height: 1.4em;
+    margin-right: 0.6em;
+    border-radius: 50%;
+    color: #ffffff;
+    line-height: 1.4em;
+    text-align: center;
+    font-weight: 700;
+    vertical-align: middle;
+}
+
+.margin-document .important-block::before {
+    content: "!";
+    background: #d97706;
+}
+
+.margin-document .justification,
+.margin-document .info-block {
+    padding-left: 3em;
+}
+
+.margin-document .justification {
+    background: rgba(168, 85, 247, 0.08);
+}
+
+.margin-document .justification::before,
+.margin-document .info-block::before {
+    position: absolute;
+    top: 0.75em;
+    left: 1em;
+    width: 1.4em;
+    height: 1.4em;
+    border-radius: 50%;
+    color: #ffffff;
+    line-height: 1.4em;
+    text-align: center;
+    font-weight: 700;
+}
+
+.margin-document .justification::before {
+    content: "<";
+    background: #9333ea;
+}
+
+.margin-document .info-block {
+    background: color-mix(in srgb, var(--margin-background) 78%, var(--margin-border) 22%);
+}
+
+.margin-document .info-block::before {
+    content: "i";
+    background: #2563eb;
+    font-family: Georgia, "Times New Roman", serif;
+    font-style: italic;
+}
+
+.margin-document .question-block {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.margin-document .question-block::before {
+    content: "?";
+    background: #2563eb;
+}
+
+.margin-document .answer-block {
+    background: rgba(34, 197, 94, 0.08);
+}
+
+.margin-document .answer-block::before {
+    content: "A";
+    background: #16a34a;
+}
+
+.margin-document .blockquote {
+    margin: 0.5em 0;
+    padding: 0.25em 0.9em;
+    border-left: 0.2em solid var(--margin-primary);
+    color: var(--margin-text-secondary);
+    font-style: italic;
+}
+
+.margin-document .margin-hr {
+    margin: 0.8em 0;
+    border: none;
+    border-top: 1px solid color-mix(in srgb, var(--margin-primary) 50%, white 50%);
+}
+
+[data-theme="dark"] .margin-document .margin-hr {
+    border-top-color: color-mix(in srgb, var(--margin-primary) 50%, black 50%);
+}
+
+.margin-document .code-block {
+    margin: 0;
+    padding: 0.4em 0.5em;
+    overflow-x: auto;
+    background: var(--margin-background2);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9em;
+    line-height: 1.15;
+    white-space: pre-wrap;
+}
+
+.margin-document .tag {
+    display: inline-block;
+    padding: 0.1em 0.4em;
+    border-radius: 0.25em;
+    background: color-mix(in srgb, var(--margin-primary) 18%, var(--margin-background));
+    color: var(--margin-primary);
+    font-size: 0.9em;
+}
+
+.margin-document .inline-image {
+    display: block;
+    max-width: 100%;
+    max-height: 30em;
+    margin: 0.5em 0;
+    border-radius: 0.5em;
+}
+
+.margin-document .youtube-embed {
+    display: block;
+    width: min(100%, 30em);
+    aspect-ratio: 16 / 9;
+    margin: 0.5em 0;
+    overflow: hidden;
+    border-radius: 0.5em;
+}
+
+.margin-document .youtube-embed iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.margin-document .mention {
+    display: inline-block;
+    padding: 0 0.3em;
+    border-radius: 0.7em;
+    background: rgba(74, 158, 255, 0.15);
+    color: inherit;
+}
+
+.margin-document .margin-table {
+    width: 100%;
+    margin: 0.5em 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--margin-border);
+    table-layout: fixed;
+}
+
+.margin-document .margin-table th,
+.margin-document .margin-table td {
+    min-height: 2em;
+    padding: 0.5em 0.75em;
+    overflow-wrap: anywhere;
+    border-right: 1px solid var(--margin-border);
+    border-bottom: 1px solid var(--margin-border);
+    text-align: left;
+}
+
+.margin-document .margin-table th:last-child,
+.margin-document .margin-table td:last-child {
+    border-right: none;
+}
+
+.margin-document .margin-table tr:last-child th,
+.margin-document .margin-table tr:last-child td {
+    border-bottom: none;
+}
+
+.margin-document .margin-table th {
+    background: color-mix(in srgb, var(--margin-primary) 18%, transparent);
+    font-weight: 700;
+}
+
+.margin-document .margin-table tbody tr:nth-child(even) {
+    background: var(--margin-background2);
+}
+
+.margin-document .margin-table .formula-result {
+    font-weight: 700;
+}
+
+@media (prefers-color-scheme: dark) {
+    .margin-document {
+        --margin-background: var(--color-background, #1e1e20);
+        --margin-background2: var(--color-background2, #2e2e30);
+        --margin-text: var(--color-text, #f7fafc);
+        --margin-text-secondary: var(--color-text-secondary, #cbd5e0);
+        --margin-border: var(--color-border, #4a5568);
+    }
+
+    .margin-document .code-block {
+        background: var(--margin-background2);
+    }
+
+    .margin-document .tag {
+        background: color-mix(in srgb, var(--margin-primary) 18%, var(--margin-background));
+        color: var(--margin-primary);
+    }
+
+    .margin-document .margin-hr {
+        border-top-color: color-mix(in srgb, var(--margin-primary) 50%, black 50%);
+    }
+}

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusHub</title>
+    <meta name="theme-color" content="#6a4caf">
+    <link rel="icon" href="icon_recreated_macos.png" type="image/png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <script src="platform-web.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* CSS Variables for theming */
+        :root {
+            --color-background: #ffffff;
+            --color-background2: #f3f4f5;
+            --color-sidebar: #f6f5f4;
+            --color-sidebar-border: #edeae6;
+            --color-text: #333333;
+            --color-border: #dee2e6;
+            --color-primary: 66CB37;
+            --color-primary-hover: #6ca372;
+        }
+
+        /* Dark mode theme */
+        [data-theme="dark"] {
+            --color-background: #1e1e20;
+            --color-background2: #2e2e30;
+            --color-sidebar: #2e2e30;
+            --color-sidebar-border: #424244;
+            --color-text: #f8f9fa;
+            --color-border: #404040;
+            --color-primary: 66CB37;
+            --color-primary-hover: #6ca372;
+        }
+        
+        body {
+            background-color: var(--color-background);
+            color: var(--color-text);
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family-base);
+        }
+        
+        #app-content {
+            width: 100%;
+            height: 100vh;
+            background-color: var(--color-background);
+            transition: background-color 0s;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main content container where all page content will be injected -->
+    <div id="app-content">
+        <!-- Content will be dynamically loaded here -->
+    </div>
+
+    <!-- Load common.js for Tauri compatibility -->
+    <script src="common.js"></script>
+
+    <script>
+        // Set up message handler immediately since DOMContentLoaded has fired
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('SPA DOMContentLoaded - setting up message handler');
+
+            // Load menu content automatically when app loads
+            console.log('App loaded, loading menu content...');
+            loadMenuContent();
+        });
+
+        // Load menu content when app loads
+        function loadMenuContent() {
+            console.log('Loading menu content...');
+            // Check if running in Tauri - navigate directly to menu
+            if (typeof window.__TAURI__ !== 'undefined') {
+                window.location.href = 'menu.html';
+            } else if (typeof window.chrome !== 'undefined' && window.chrome.webview) {
+                // WebView2 (C#) fallback
+                window.chrome.webview.postMessage('loadView:menu');
+            } else {
+                // Direct navigation fallback
+                window.location.href = 'menu.html';
+            }
+        }
+        
+        // Test message handler for debugging
+        function testMessage(data) {
+            console.log('Test message received from C#:', data);
+        }
+        
+        // SPA content loading function
+        function loadSPAContent(pageName, content, styles, scripts) {
+            console.log('Loading SPA content for:', pageName);
+            
+            const appContent = document.getElementById('app-content');
+            if (!appContent) {
+                console.error('App content container not found');
+                return;
+            }
+            
+            // Clear existing content
+            appContent.innerHTML = '';
+            
+            // Inject styles if provided
+            if (styles && styles.trim()) {
+                const styleElement = document.createElement('style');
+                styleElement.textContent = styles;
+                document.head.appendChild(styleElement);
+            }
+            
+            // Inject content
+            appContent.innerHTML = content;
+            
+            // Execute scripts if provided
+            if (scripts && scripts.trim()) {
+                try {
+                    // Create a function scope to avoid global variable conflicts
+                    const scriptFunction = new Function(scripts);
+                    scriptFunction();
+                    
+                    // If there's an initialization function for this page, call it
+                    const initFunctionName = `initialize${pageName.charAt(0).toUpperCase() + pageName.slice(1)}Page`;
+                    if (typeof window[initFunctionName] === 'function') {
+                        console.log(`Calling ${initFunctionName}`);
+                        window[initFunctionName]();
+                    }
+                } catch (error) {
+                    console.error('Error executing page scripts:', error);
+                }
+            }
+        }
+        
+        // Editor-specific loading function for complex content
+        function loadEditorContent(fullHtmlContent) {
+            console.log('Loading full editor content');
+            
+            // Parse the full HTML to extract body content and styles
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(fullHtmlContent, 'text/html');
+            
+            // Clean up any existing editor styles first
+            const existingEditorStyles = document.querySelectorAll('style[data-page="editor"]');
+            existingEditorStyles.forEach(style => style.remove());
+            
+            // Get all style elements from head
+            const styles = doc.head.querySelectorAll('style');
+            styles.forEach(style => {
+                const newStyle = document.createElement('style');
+                newStyle.setAttribute('data-page', 'editor');
+                newStyle.textContent = style.textContent;
+                document.head.appendChild(newStyle);
+            });
+            
+            // Get body content
+            const bodyContent = doc.body.innerHTML;
+            
+            // Inject into app container
+            const appContent = document.getElementById('app-content');
+            if (appContent) {
+                appContent.innerHTML = bodyContent;
+                
+                // Remove any existing editor scripts from head to prevent conflicts
+                const existingEditorScripts = document.querySelectorAll('script[data-page="editor"]');
+                existingEditorScripts.forEach(script => script.remove());
+                
+                // Clear any existing global variables that might conflict
+                try {
+                    // Clear common editor globals that might cause conflicts
+                    if (typeof FONT_FAMILY !== 'undefined') {
+                        console.log('Clearing existing FONT_FAMILY variable');
+                        delete window.FONT_FAMILY;
+                    }
+                    // Add other globals that might need clearing
+                    const globalsToClean = ['canvas', 'gl', 'text', 'isChanged', 'currentHistoryData'];
+                    globalsToClean.forEach(global => {
+                        if (typeof window[global] !== 'undefined') {
+                            console.log('Clearing existing global:', global);
+                            delete window[global];
+                        }
+                    });
+                } catch (e) {
+                    console.log('Error clearing globals:', e);
+                }
+                
+                // Execute any scripts that were in the body
+                const scripts = appContent.querySelectorAll('script');
+                scripts.forEach((script, index) => {
+                    try {
+                        const newScript = document.createElement('script');
+                        newScript.setAttribute('data-page', 'editor');
+                        newScript.setAttribute('data-script-index', index.toString());
+                        if (script.src) {
+                            newScript.src = script.src;
+                        } else {
+                            newScript.textContent = script.textContent;
+                        }
+                        document.head.appendChild(newScript);
+                    } catch (scriptError) {
+                        console.error('Error injecting script:', scriptError);
+                    }
+                });
+                
+                // Execute any scripts that were appended after the body (like common.js and initialization scripts)
+                // But skip those already processed from the body
+                const allScripts = doc.querySelectorAll('script');
+                const bodyScripts = Array.from(doc.body.querySelectorAll('script'));
+                
+                allScripts.forEach((script, index) => {
+                    // Skip scripts that are already in the body (already processed above)
+                    if (bodyScripts.includes(script)) {
+                        return;
+                    }
+                    
+                    const scriptContent = script.textContent;
+                    if (scriptContent && scriptContent.trim()) {
+                        try {
+                            // Add scripts that are outside the body (like those appended by C#)
+                            const newScript = document.createElement('script');
+                            newScript.setAttribute('data-page', 'editor');
+                            newScript.setAttribute('data-script-source', 'external');
+                            newScript.textContent = scriptContent;
+                            document.head.appendChild(newScript);
+                        } catch (scriptError) {
+                            console.error('Error injecting external script:', scriptError);
+                        }
+                    }
+                });
+                
+                // Simple initialization without trying to parse DOMContentLoaded
+                setTimeout(() => {
+                    console.log('Editor content loaded, triggering initialization functions');
+                    
+                    // Ensure message handler is set up (since DOMContentLoaded already fired)
+                    if (typeof processResponse === 'function') {
+                        console.log('Setting up message handler');
+                        // Remove any existing listeners to avoid duplicates
+                        try {
+                            window.chrome.webview.removeEventListener('message', processResponse);
+                        } catch (e) {
+                            // Ignore if listener wasn't there
+                        }
+                        // Add the listener
+                        window.chrome.webview.addEventListener('message', processResponse);
+                    } else {
+                        console.error('processResponse function not found');
+                    }
+                    
+                    // Trigger any initialization functions that were defined in the injected content
+                    console.log('=== SPA INITIALIZATION FUNCTIONS ===');
+                    
+                    // Apply dark mode first if available
+                    if (typeof applyDarkModeOnLoad === 'function') {
+                        console.log('✅ Found applyDarkModeOnLoad, calling it first');
+                        applyDarkModeOnLoad();
+                        
+                        // Wait a bit for dark mode to apply
+                        setTimeout(function() {
+                            console.log('Dark mode should be applied, now loading note data');
+                            
+                            if (typeof initializeNoteData === 'function') {
+                                console.log('✅ Found initializeNoteData, calling it');
+                                initializeNoteData();
+                            }
+                            
+                            if (typeof initializeEmptyState === 'function') {
+                                console.log('✅ Found initializeEmptyState, calling it');
+                                initializeEmptyState();
+                            }
+                            
+                            console.log('=== SPA INITIALIZATION COMPLETE ===');
+                        }, 100);
+                    } else {
+                        console.log('❌ applyDarkModeOnLoad not found, proceeding with note loading');
+                        
+                        if (typeof initializeNoteData === 'function') {
+                            console.log('✅ Found initializeNoteData, calling it');
+                            initializeNoteData();
+                        }
+                        
+                        if (typeof initializeEmptyState === 'function') {
+                            console.log('✅ Found initializeEmptyState, calling it');
+                            initializeEmptyState();
+                        }
+                        
+                        console.log('=== SPA INITIALIZATION COMPLETE ===');
+                    }
+                    
+                    // Just trigger canvas resize to ensure editor is properly initialized
+                    if (typeof resizeCanvas === 'function') {
+                        console.log('Triggering canvas resize');
+                        resizeCanvas();
+                    }
+                }, 200); // Slightly longer delay to ensure scripts are loaded
+            }
+        }
+    </script>
+</body>
+</html>

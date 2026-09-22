@@ -1,0 +1,53 @@
+    <!-- Search header -->
+    <div id="search-header" class="search-header">
+        <div class="search-container">
+            <input type="text" id="search-input" class="search-input" placeholder="Search notes and tasks..." />
+            <div class="search-controls">
+                <button id="search-clear" class="search-button">Clear</button>
+                <button id="search-close" class="search-button">×</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Wrapper div to contain the main layout -->
+    <div class="content-wrapper">
+        <div class="main-container">
+            <div class="left-pane">
+                <div class="left-pane-header">
+                    <div class="header-left-icons">
+                        <a href="#" onclick="toggleSearchPanel();" class="settings-button" title="Search">
+                            <img data-src="search.svg" alt="Search" class="icon" style="width: 16px; height: 16px;">
+                        </a>
+                        <a href="#" onclick="showSettings();" class="settings-button" title="Settings">
+                            <img data-src="settings.svg" alt="Settings" class="icon" style="width: 16px; height: 16px;">
+                        </a>
+                    </div>
+                    <a href="#" onclick="loadView('editor', '*');" class="left-button" title="Create New Note">
+                        <img data-src="plus.svg" alt="New Note" class="icon" style="width: 14px; height: 14px;">
+                    </a>
+                </div>
+                <div class="left-pane-section-title">Tags</div>
+                <ul id="tag-list">
+                    <li class="tag-item active-tag" data-tag-id="all">All Tags</li>
+                    <!-- Dynamic tags will be appended here by getTags() -->
+                </ul>
+
+            </div>
+            <div class="right-pane">
+                <div class="tab-nav">
+                    <button class="tab-button active" onclick="showTab('notes')" data-tab-name="notes">Notes</button>
+                    <button class="tab-button" onclick="showTab('tasks')" data-tab-name="tasks">Tasks</button>
+                    <button class="tab-button" onclick="showTab('decisions')" data-tab-name="decisions">Decisions</button>
+                </div>
+                <div id="notes-content" class="tab-content active-content">
+                    <div id="content"></div> <!-- Existing content div moved here -->
+                </div>
+                <div id="tasks-content" class="tab-content">
+                    <div class="no-notes-container"><span style="display: inline-block; width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--color-text); background: transparent;"></span></div>
+                </div>
+                <div id="decisions-content" class="tab-content">
+                    <div class="no-notes-container"><span style="display: inline-block; width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--color-text); background: transparent;"></span></div>
+                </div>
+            </div>
+        </div>
+    </div>

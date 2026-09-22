@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms &amp; Conditions - MellowMill</title>
+    <meta name="theme-color" content="#6a4caf">
+    <link rel="icon" href="icon_recreated_macos.png" type="image/png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <script src="platform-web.js"></script>
+    <link rel="stylesheet" href="common.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="common.js"></script>
+    <style>
+        html {
+            background-color: var(--color-background);
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family-base);
+            background-color: var(--color-background);
+            color: var(--color-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .terms-container {
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .terms-container h1 {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+        }
+
+        .terms-container .subtitle {
+            font-size: 1em;
+            color: var(--color-text);
+            opacity: 0.7;
+            margin-bottom: 30px;
+        }
+
+        .terms-content {
+            text-align: left;
+            background-color: var(--color-background2);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 30px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .terms-content h3 {
+            margin-top: 16px;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .terms-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .terms-content p {
+            margin: 0 0 12px 0;
+        }
+
+        .terms-content ul {
+            margin: 0 0 12px 0;
+            padding-left: 20px;
+        }
+
+        .terms-content li {
+            margin-bottom: 4px;
+        }
+
+        .terms-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .terms-actions button {
+            padding: 12px 40px;
+            font-size: 1em;
+            font-family: var(--font-family-base);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn-accept {
+            background-color: #48bb78;
+            color: white;
+        }
+
+        .btn-accept:hover {
+            opacity: 0.9;
+        }
+
+        .btn-accept:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="terms-container">
+        <h1>Terms &amp; Conditions</h1>
+        <p class="subtitle">Please review and accept our terms of use.</p>
+
+        <div class="terms-content">
+            <h3>License &amp; Usage</h3>
+            <p>MellowMill is licensed, not sold. By using this software, you are granted a non-exclusive, non-transferable license to use the application on your personal devices in accordance with your license tier (Unlicensed, Free, Core, or Professional).</p>
+            <p>We reserve the right to modify the features included in each license tier at any time.</p>
+
+            <h3>Intellectual Property</h3>
+            <p>All rights, title, and interest in MellowMill, including its design, code, and branding, remain the property of MellowMill. You may not reverse-engineer, decompile, or modify the software.</p>
+
+            <h3>Your Content</h3>
+            <p>You retain full ownership of all notes, files, and data you create using MellowMill. Your content is stored locally on your device and is your responsibility to back up.</p>
+
+            <h3>Purchases &amp; Refunds</h3>
+            <p>License purchases are one-time payments processed through Fourthwall. Refund requests are handled according to Fourthwall's refund policy. License keys are tied to your email address and order ID.</p>
+
+            <h3>Roadmap</h3>
+            <p>Access to the product roadmap is available to users who purchase a Core or Professional license, or who register for a free account. This access is provided as a courtesy and does not constitute a commitment to develop, release, or deliver any features listed.</p>
+
+            <h3>Limitation of Liability</h3>
+            <p>MellowMill is provided on an 'as is' and 'as available' basis. We do not warrant that the software will be uninterrupted or error-free. We are not liable for any data loss, damages, or issues arising from the use of the software. You are responsible for maintaining backups of your data.</p>
+
+            <h3>Acceptable Use</h3>
+            <p>You agree not to use MellowMill for any unlawful purpose, or to attempt to circumvent license restrictions or security measures.</p>
+
+            <h3>Governing Law</h3>
+            <p>These terms are governed by the laws of England and Wales. Any disputes shall be resolved in the courts of England and Wales.</p>
+
+            <h3>Termination</h3>
+            <p>We reserve the right to revoke your license if you violate these terms. Upon termination, you must stop using the software. Your locally stored data remains yours.</p>
+        </div>
+
+        <div class="terms-actions">
+            <button class="btn-accept" onclick="acceptTerms()">I Agree &amp; Continue</button>
+            <p style="font-size: 0.85em; opacity: 0.7; margin-top: 8px;">If you have questions, contact us at hello@mellowmill.app</p>
+        </div>
+    </div>
+
+    <script>
+        async function acceptTerms() {
+            const btn = document.querySelector('.btn-accept');
+            btn.disabled = true;
+            btn.textContent = 'Setting up...';
+
+            try {
+                const { invoke } = window.__TAURI__.core;
+                await invoke('accept_terms');
+                window.location.href = '/menu.html';
+            } catch (error) {
+                console.error('Error accepting terms:', error);
+                btn.disabled = false;
+                btn.textContent = 'I Agree & Continue';
+                alert('Something went wrong. Please try again.');
+            }
+        }
+    </script>
+</body>
+
+</html>

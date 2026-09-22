@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>MellowMill web build — smoke test</title>
+<style>
+  body { font: 14px/1.5 -apple-system, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; }
+  h1 { font-size: 18px; }
+  pre { background: #f2f2f2; padding: 12px; border-radius: 6px; overflow-x: auto; }
+  .ok { color: #0a7a0a; }
+  .fail { color: #b00020; }
+</style>
+</head>
+<body>
+<h1>mellowmill-core → WASM smoke test</h1>
+<p>Not part of the real app — a throwaway page proving the WASM build pipeline works end to end (see docs/WEB_PORT.md Phase 3).</p>
+<div id="out">loading…</div>
+<script src="platform-web.js"></script>
+<script>
+(async function () {
+  var out = document.getElementById('out');
+  var lines = [];
+  function log(label, value, isError) {
+    lines.push('<p><strong>' + label + ':</strong> <span class="' + (isError ? 'fail' : 'ok') + '">' +
+      JSON.stringify(value) + '</span></p>');
+    out.innerHTML = lines.join('');
+  }
+  try {
+    var invoke = window.__TAURI__.core.invoke;
+
+    var ids = await invoke('generate_task_ids', { count: 3 });
+    log('generate_task_ids(3)', ids);
+
+    var avail = await invoke('get_feature_availability');
+    log('get_feature_availability()', avail);
+
+    var enabled = await invoke('is_feature_enabled', { featureName: 'darkMode' });
+    log('is_feature_enabled("darkMode")', enabled);
+
+    var license = await invoke('get_license_status');
+    log('get_license_status()', license);
+
+    // Round-trip through the in-memory note store.
+    var b64 = btoa('Smoke Test Note\nSome body text\n#smoketest');
+    var saved = await invoke('save_note', { noteId: null, base64Content: b64 });
+    log('save_note(new)', saved);
+
+    var list = await invoke('load_notes');
+    log('load_notes()', list);
+    if (!list.some(function (n) { return n.Id === saved.Id; })) {
+        throw new Error('saved note missing from load_notes()');
+    }
+
+    var loaded = await invoke('load_note', { noteId: saved.Id });
+    log('load_note(saved.Id)', loaded);
+
+    var tags = await invoke('get_tags');
+    log('get_tags()', tags);
+    if (!tags.some(function (t) { return t.Name === 'smoketest'; })) {
+        throw new Error('"smoketest" tag missing from get_tags()');
+    }
+
+    var fav = await invoke('toggle_tag_favourite', { name: 'smoketest' });
+    log('toggle_tag_favourite("smoketest")', fav);
+
+    await invoke('delete_note', { noteId: saved.Id });
+    var listAfterDelete = await invoke('load_notes');
+    log('load_notes() after delete', listAfterDelete);
+    if (listAfterDelete.some(function (n) { return n.Id === saved.Id; })) {
+        throw new Error('deleted note still present in load_notes()');
+    }
+
+    log('RESULT', 'all calls returned and the note round-trip checked out — WASM pipeline is working', false);
+  } catch (e) {
+    log('ERROR', String(e && e.stack || e), true);
+  }
+})();
+</script>
+</body>
+</html>

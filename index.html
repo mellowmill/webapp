@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="theme-color" content="#6a4caf">
+    <link rel="icon" href="icon_recreated_macos.png" type="image/png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <script src="platform-web.js"></script>
+    <style>
+        body { margin: 0; background-color: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <script>
+        async function init() {
+            try {
+                const { invoke } = window.__TAURI__.core;
+                const step = await invoke('check_first_run');
+                if (step === 'privacy' || step === 'terms') {
+                    window.location.href = '/privacy.html';
+                } else {
+                    window.location.href = '/workspace.html';
+                }
+            } catch (error) {
+                console.error('Error checking first run:', error);
+                window.location.href = '/menu.html';
+            }
+        }
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,754 @@
+/* Common CSS - automatically included in all pages */
+
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;700&display=swap');
+
+/* CSS Variables for theming */
+:root {
+    --color-background: #f5f5f5;
+    --color-background2: #f3f4f5;
+    --color-sidebar: #f2f2f2;
+    --color-sidebar-border: #d5d2cc;
+    --color-text: #1a202c;
+    --color-text-secondary: #4a5568;
+    --color-border: #d1d5db;
+    --color-border-strong: #9ca3af;
+    --color-primary: #9ca3af;
+    --color-primary-hover: #7c828c;
+    --color-primary-dark: #656971;
+    /* Readable text/icon colour to sit on top of --color-primary. Recomputed
+       from the chosen highlight colour's luminance whenever it changes (see
+       applyHighlightColor / loadSettings), so light highlights get dark text. */
+    --color-on-primary: #ffffff;
+    --color-shadow-sm: rgba(0, 0, 0, 0.03);
+    --color-shadow-md: rgba(0, 0, 0, 0.05);
+    --color-shadow-lg: rgba(0, 0, 0, 0.08);
+
+    /* Typography variables */
+    --font-family-base: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-family-heading: 'Gowun Dodum', sans-serif;
+    --font-size-base: 0.875rem;
+    --font-size-large: 1rem;
+    --font-size-xlarge: 1.25rem;
+}
+
+/* Dark mode theme */
+[data-theme="dark"] {
+    --color-background: #1e1e20;
+    --color-background2: #2e2e30;
+    --color-sidebar: #2e2e30;
+    --color-sidebar-border: #555558;
+    --color-text: #f7fafc;
+    --color-text-secondary: #cbd5e0;
+    --color-border: #4a5568;
+    --color-border-strong: #718096;
+    --color-primary: #9ca3af;
+    --color-primary-hover: #7c828c;
+    --color-primary-dark: #656971;
+    --color-on-primary: #ffffff;
+    --color-shadow-sm: rgba(0, 0, 0, 0.15);
+    --color-shadow-md: rgba(0, 0, 0, 0.2);
+    --color-shadow-lg: rgba(0, 0, 0, 0.25);
+}
+
+/* macOS-only typography. macOS uses WKWebView, which renders the downloaded
+   Inter web font thinner/softer than Windows' WebView2 — noticeably so on
+   standard-DPI (non-Retina) displays. On Mac we switch body/UI text to the
+   system font (San Francisco), the same font native apps use, which WKWebView
+   renders crisply, and nudge the base size up slightly for low-DPI displays.
+   Scoped via the data-os attribute set in common.js, so Windows and Linux keep
+   their current Inter appearance. */
+:root[data-os="mac"] {
+    --font-family-base: -apple-system, system-ui, 'Helvetica Neue', sans-serif;
+    --font-size-base: 0.9375rem;   /* 15px (was 14px) */
+    --font-size-large: 1.0625rem;  /* 17px (was 16px) */
+}
+
+/* Base body styles */
+body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family-base);
+    /* Use grayscale antialiasing on macOS. WKWebView defaults to subpixel
+       antialiasing, which renders text heavier/blurrier than Windows' WebView2.
+       This is a no-op on Windows/Chromium, so it only sharpens the Mac. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* The browser build keeps the install action available from every page. */
+:root[data-platform="web"] #pwa-install-button {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
+    z-index: 2000;
+    min-width: 72px;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--color-primary-dark);
+    border-radius: 17px;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font: 600 var(--font-size-base) var(--font-family-base);
+    cursor: pointer;
+    box-shadow: 0 2px 8px var(--color-shadow-md);
+}
+
+:root[data-platform="web"] #pwa-install-button:hover {
+    background-color: var(--color-primary-hover);
+}
+
+:root[data-platform="web"] #pwa-install-button:focus-visible {
+    outline: 2px solid var(--color-primary-dark);
+    outline-offset: 2px;
+}
+
+/* Ensure html element also has background color */
+html {
+    background-color: var(--color-background);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease;
+}
+
+/* Heading styles */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-heading) !important;
+}
+
+/* Common button styles */
+.btn {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    border: 1px solid var(--color-primary-dark);
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px var(--color-shadow-sm);
+}
+
+.btn:hover {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-dark);
+    box-shadow: 0 2px 4px var(--color-shadow-md);
+}
+
+.btn:active {
+    transform: scale(0.98);
+    box-shadow: none;
+}
+
+/* Common icon button styles */
+.icon-button {
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 1.2em;
+    padding: 8px;
+    display: inline-block;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.icon-button:hover {
+    color: var(--color-primary);
+    background-color: var(--color-background2);
+}
+
+/* Icon image styles */
+.icon {
+    display: inline-block;
+    vertical-align: middle;
+    /* Ensure the image takes up space */
+    min-width: 16px;
+    min-height: 16px;
+    /* Hide broken image indicators and alt text overflow */
+    font-size: 0;
+    line-height: 0;
+    /* Smooth color transitions for SVG */
+    transition: filter 0.2s ease;
+}
+
+/* Dark mode: invert icons to make them light */
+[data-theme="dark"] .icon {
+    filter: invert(1) brightness(1.2);
+}
+
+/* Hide alt text completely when image is loading or broken */
+.icon[alt] {
+    text-indent: -9999px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* SVG fill color inheritance for embedded icons */
+.icon svg {
+    fill: currentColor;
+}
+
+/* Common loading animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading {
+    animation: spin 1s linear infinite;
+}
+
+/* Common focus styles */
+*:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+}
+
+*:focus:not(:focus-visible) {
+    outline: none;
+}
+
+*:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
+}
+
+/* Modal styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-dialog {
+    background-color: var(--color-background2);
+    border-radius: 16px;
+    border: 1px solid var(--color-border);
+    box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.15), 
+                0px 8px 16px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(0, 0, 0, 0.05);
+    width: 90%;
+    max-width: 420px;
+    animation: slideIn 0.2s ease;
+    overflow: hidden;
+}
+
+[data-theme="dark"] .modal-dialog {
+    background-color: var(--color-background2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--color-border);
+    box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.5), 
+                0px 8px 16px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 24px 24px 20px 24px;
+    border-bottom: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--color-text) 4%, transparent);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: -0.01em;
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--color-text) 4%, transparent);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-body p {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    font-weight: 400;
+}
+
+.modal-footer {
+    padding: 20px 24px 24px 24px;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: color-mix(in srgb, var(--color-text) 2%, transparent);
+}
+
+[data-theme="dark"] .modal-footer {
+    border-top: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--color-text) 2%, transparent);
+}
+
+/* Secondary button style */
+.btn-secondary {
+    background-color: var(--color-background);
+    color: var(--color-text-secondary);
+    border: 1.5px solid var(--color-border);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-background2);
+    border-color: var(--color-border-strong);
+    color: var(--color-text);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .btn-secondary {
+    background-color: var(--color-background);
+    color: var(--color-text-secondary);
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+    background-color: var(--color-background2);
+    border-color: var(--color-border-strong);
+    color: var(--color-text);
+}
+
+/* Danger button style */
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3),
+                0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4),
+                0 2px 4px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+.btn-danger:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3),
+                0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================================
+   Command Runner (Ctrl+P / Cmd+P)
+   ============================================================================ */
+
+.command-runner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 60px;
+    z-index: 10000;
+    animation: fadeIn 0.2s ease;
+}
+
+.command-runner-container {
+    width: 100%;
+    max-width: 600px;
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.2),
+                0px 8px 16px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    animation: slideDown 0.2s ease;
+}
+
+[data-theme="dark"] .command-runner-container {
+    background-color: var(--color-background2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--color-border);
+    box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.5),
+                0px 8px 16px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.command-runner-input-wrapper {
+    padding: 16px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+[data-theme="dark"] .command-runner-input-wrapper {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.command-runner-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: var(--font-size-large);
+    font-family: var(--font-family-base);
+    background-color: var(--color-background2);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text);
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.command-runner-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 16%, transparent);
+}
+
+[data-theme="dark"] .command-runner-input {
+    background-color: var(--color-background);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .command-runner-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 24%, transparent);
+}
+
+.command-runner-input::placeholder {
+    color: var(--color-text-secondary);
+}
+
+.command-runner-results {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.command-runner-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 16px;
+    margin: 4px 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    gap: 12px;
+}
+
+.command-runner-item:hover {
+    background-color: var(--color-background2);
+}
+
+[data-theme="dark"] .command-runner-item:hover {
+    background-color: var(--color-background2);
+}
+
+.command-runner-item.selected {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+}
+
+[data-theme="dark"] .command-runner-item.selected {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+}
+
+.command-runner-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    width: 24px;
+    text-align: center;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.command-runner-icon svg {
+    display: block;
+}
+
+.command-runner-item.selected .command-runner-icon svg path,
+.command-runner-item.selected .command-runner-icon svg circle {
+    fill: var(--color-on-primary);
+    stroke: var(--color-on-primary);
+}
+
+.command-runner-item.selected .command-runner-icon svg path[fill="none"] {
+    fill: none;
+}
+
+/* Tag icon: when selected, circle is white and # becomes primary color */
+.command-runner-item.selected .command-runner-icon svg text {
+    fill: var(--color-primary);
+}
+
+.command-runner-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.command-runner-title {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 4px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.command-runner-item.selected .command-runner-title {
+    color: var(--color-on-primary);
+}
+
+.command-runner-description {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.command-runner-item.selected .command-runner-description {
+    color: var(--color-on-primary);
+    opacity: 0.9;
+}
+
+.command-runner-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-base);
+}
+
+.command-runner-loading {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-base);
+}
+
+/* Scrollbar for results */
+.command-runner-results::-webkit-scrollbar {
+    width: 8px;
+}
+
+.command-runner-results::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.command-runner-results::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+}
+
+.command-runner-results::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
+}
+
+/* Highlight for search matches */
+.command-runner-highlight {
+    background-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-background));
+    padding: 2px 0;
+    border-radius: 2px;
+    font-weight: 600;
+}
+
+[data-theme="dark"] .command-runner-highlight {
+    background-color: color-mix(in srgb, var(--color-primary) 36%, var(--color-background));
+}
+
+.command-runner-item.selected .command-runner-highlight {
+    background-color: color-mix(in srgb, var(--color-on-primary) 30%, var(--color-primary));
+    color: var(--color-on-primary);
+}
+
+/* Small round person avatar — shared between the editor's @mention pills
+   (rendered as a ::before there, see editor.css), the Tasks tab's "People"
+   filter pills, and the Settings People list. Background is set inline per
+   person (their uploaded icon as a background-image, or a hash-derived
+   background-color showing their initial), via renderPersonAvatarHTML() in
+   common.js. */
+.person-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+    font-size: 0.7em;
+    font-weight: 600;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+/* @mentions — a person tag, rendered inline in both the editor (see
+   parseInline() in editor.html) and the Tasks list (see
+   renderTaskContentWithMentions() in menu.js). The avatar dot is a ::before
+   pseudo-element, not a real DOM child, so in the editor the span's only
+   actual text content is the literal "@Name" — this is what keeps plain-text
+   round-trip serialization (extractPlainText/serializeInlineMarkup) working
+   with no special-casing there. --mention-color/--mention-icon are set
+   inline per-instance by whichever renderer produced the span. */
+.mention {
+    display: inline-block;
+    vertical-align: middle;
+    background-color: color-mix(in srgb, var(--color-primary) 14%, var(--color-background));
+    color: var(--color-primary-dark);
+    padding: 1px 6px 1px 3px;
+    border-radius: 10px;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+[data-theme="dark"] .mention {
+    background-color: color-mix(in srgb, var(--color-primary) 18%, var(--color-background));
+    color: var(--color-primary);
+}
+
+.mention::before {
+    content: attr(data-initial);
+    display: inline-block;
+    vertical-align: middle;
+    width: 20px;
+    height: 20px;
+    margin-right: 4px;
+    border-radius: 50%;
+    background-color: var(--mention-color, #64748b);
+    color: #fff;
+    font-size: 0.7em;
+    font-weight: 600;
+    line-height: 20px;
+    text-align: center;
+}
+
+.mention[data-has-icon="true"]::before {
+    content: '';
+    background-color: transparent;
+    background-image: var(--mention-icon);
+    background-size: cover;
+    background-position: center;
+}
+
+
+/* ============================================
+   Update notification banner (macOS auto-update)
+   ============================================ */
+
+.update-banner {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+    z-index: 9999;
+}
+
+.update-banner a {
+    color: var(--color-on-primary);
+    text-decoration: underline;
+}
+
+.update-banner button {
+    background: none;
+    border: none;
+    color: var(--color-on-primary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 0 4px;
+}
+
+.update-banner button:hover {
+    opacity: 0.8;
+}

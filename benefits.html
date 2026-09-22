@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - MellowMill</title>
+    <meta name="theme-color" content="#6a4caf">
+    <link rel="icon" href="icon_recreated_macos.png" type="image/png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <script src="platform-web.js"></script>
+    <link rel="stylesheet" href="common.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="common.js"></script>
+    <style>
+        html {
+            background-color: var(--color-background);
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family-base);
+            background-color: var(--color-background);
+            color: var(--color-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .onboarding-container {
+            max-width: 680px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .onboarding-container h1 {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+        }
+
+        .onboarding-container .subtitle {
+            font-size: 1em;
+            color: var(--color-text);
+            opacity: 0.7;
+            margin-bottom: 28px;
+        }
+
+        .benefit-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .benefit-card {
+            background-color: var(--color-background2);
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            padding: 20px 16px;
+            text-align: center;
+        }
+
+        .benefit-card .benefit-icon {
+            font-size: 1.6em;
+            margin-bottom: 10px;
+        }
+
+        .benefit-card h3 {
+            font-size: 0.95em;
+            margin: 0 0 6px 0;
+        }
+
+        .benefit-card p {
+            font-size: 0.82em;
+            opacity: 0.75;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .upgrade-panel {
+            background-color: var(--color-background2);
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            padding: 24px;
+            text-align: left;
+            margin-bottom: 24px;
+        }
+
+        .upgrade-panel h2 {
+            font-size: 1.1em;
+            margin: 0 0 4px 0;
+            text-align: center;
+        }
+
+        .upgrade-panel .upgrade-price {
+            text-align: center;
+            opacity: 0.7;
+            font-size: 0.85em;
+            margin: 0 0 16px 0;
+        }
+
+        .upgrade-features {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 0.88em;
+        }
+
+        .upgrade-features li i {
+            color: #48bb78;
+            margin-right: 8px;
+        }
+
+        .onboarding-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .onboarding-actions button {
+            padding: 12px 32px;
+            font-size: 1em;
+            font-family: var(--font-family-base);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        .btn-accept {
+            background-color: #48bb78;
+            color: white;
+        }
+
+        .btn-accept:hover {
+            opacity: 0.9;
+        }
+
+        .btn-upgrade {
+            background-color: transparent;
+            color: var(--color-text);
+            border: 2px solid var(--color-border) !important;
+        }
+
+        .btn-upgrade:hover {
+            border-color: var(--color-primary) !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="onboarding-container">
+        <h1>You're all set 🎉</h1>
+        <p class="subtitle">Here's the short version of why MellowMill is a little different.</p>
+
+        <div class="benefit-cards">
+            <div class="benefit-card">
+                <div class="benefit-icon">🏠</div>
+                <h3>Local-First</h3>
+                <p>Your notes live on your machine, not in someone else's server room.</p>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">🔒</div>
+                <h3>Built for Privacy</h3>
+                <p>No trackers, no telemetry, no peeking. What you write stays yours.</p>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">💸</div>
+                <h3>No Subscriptions</h3>
+                <p>Pay once, own it forever. No surprise renewals, ever.</p>
+            </div>
+        </div>
+
+        <div class="upgrade-panel">
+            <h2>Want a bit more firepower?</h2>
+            <p class="upgrade-price">Upgrade to Core with a one-time payment — no subscription, ever.</p>
+            <ul class="upgrade-features">
+                <li><i class="fas fa-check"></i>Advanced Tables</li>
+                <li><i class="fas fa-check"></i>Advanced Tasks</li>
+                <li><i class="fas fa-check"></i>Advanced Files</li>
+                <li><i class="fas fa-check"></i>Projects</li>
+                <li><i class="fas fa-check"></i>AI Integration</li>
+                <li><i class="fas fa-check"></i>30 Day Version History</li>
+            </ul>
+        </div>
+
+        <div class="onboarding-actions">
+            <button class="btn-upgrade" onclick="upgradeToCore()">Upgrade to Core</button>
+            <button class="btn-accept" onclick="getStarted()">Get Started Free</button>
+        </div>
+    </div>
+
+    <script>
+        function getStarted() {
+            window.location.href = '/menu.html';
+        }
+
+        function upgradeToCore() {
+            // Reuses the same "open Settings on the Account tab" hop the
+            // in-app "Upgrade to Core" CTA uses (see menu.js openAccountUpgrade).
+            loadView('settings', 'account');
+        }
+    </script>
+</body>
+
+</html>

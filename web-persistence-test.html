@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>MellowMill web build — OPFS persistence test</title>
+<style>
+  body { font: 14px/1.5 -apple-system, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; }
+  pre { background: #f2f2f2; padding: 12px; border-radius: 6px; overflow-x: auto; }
+</style>
+</head>
+<body>
+<h1>OPFS persistence test</h1>
+<p>Not part of the real app. Load this page once to plant a note, then reload
+it — a second load should find the same note still there (survived via the
+OPFS snapshot) and clean it up. See docs/WEB_PORT.md Phase 3.</p>
+<div id="out">loading…</div>
+<script src="platform-web.js"></script>
+<script>
+(async function () {
+  var out = document.getElementById('out');
+  var MARK = 'Persistence Test Note';
+  try {
+    var invoke = window.__TAURI__.core.invoke;
+    var notes = await invoke('load_notes');
+    var existing = notes.find(function (n) { return n.Title === MARK; });
+
+    if (existing) {
+      out.innerHTML = '<p><strong>Found it after reload</strong> — persistence works. Cleaning up.</p><pre>' +
+        JSON.stringify(existing) + '</pre>';
+      await invoke('delete_note', { noteId: existing.Id });
+      out.innerHTML += '<p>Deleted. Reload again to start a fresh plant/verify cycle.</p>';
+    } else {
+      var b64 = btoa(MARK + '\nPlanted at ' + new Date().toISOString());
+      var saved = await invoke('save_note', { noteId: null, base64Content: b64 });
+      out.innerHTML = '<p><strong>Planted a note</strong> — now reload this page to verify it survived.</p><pre>' +
+        JSON.stringify(saved) + '</pre>';
+    }
+
+    // Settings/license persistence (separate OPFS snapshot) — same idea.
+    var settings = await invoke('load_settings');
+    var marker = settings.find(function (s) { return s.Key === 'persistenceMarker'; });
+    if (marker) {
+      out.innerHTML += '<p><strong>Settings marker survived reload:</strong> ' + marker.Value + '</p>';
+    } else {
+      await invoke('save_settings', { key: 'persistenceMarker', value: 'planted-' + Date.now() });
+      out.innerHTML += '<p>Planted a settings marker — reload again to verify it too survives.</p>';
+    }
+  } catch (e) {
+    out.innerHTML = '<p style="color:#b00020"><strong>ERROR:</strong> ' + String(e && e.stack || e) + '</p>';
+  }
+})();
+</script>
+</body>
+</html>
